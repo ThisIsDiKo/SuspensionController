@@ -3,13 +3,14 @@ package com.dikoresearchsuspensioncontroller.feature_controller.data.local
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.local.DataStoreRepository
 import javax.inject.Inject
 
 private const val APPLICATION_SETTINGS_NAME = "application-settings"
 val Context.applicationDataStore by preferencesDataStore(name = APPLICATION_SETTINGS_NAME)
 
 
-class DataStoreManager @Inject constructor(context: Context) {
+class DataStoreRepositoryImpl @Inject constructor(context: Context): DataStoreRepository {
     private val appDataStore = context.applicationDataStore
 
     suspend fun setDeviceAddress(address: String){

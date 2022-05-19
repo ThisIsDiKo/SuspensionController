@@ -5,12 +5,12 @@ import kotlinx.coroutines.flow.Flow
 
 interface DataStoreRepository {
     suspend fun setDeviceAddress(address: String)
-    suspend fun setDeviceType()
-    suspend fun setDeviceName()
-    suspend fun setDeviceFirmwareVersion()
-    suspend fun setNumOfWays()
-    suspend fun setPressureUnits()
-    suspend fun setPressureSensor()
+    suspend fun setDeviceName(name: String)
+    suspend fun setDeviceFirmwareVersion(version: String)
+    suspend fun setDeviceMode()
+    suspend fun setUseTankPressure(useTankPressure: Boolean)
+    suspend fun setPressureSensor(sensor: PressureSensor)
+    suspend fun setPressureUnits(units: PressureUnitsType)
 
     fun getApplicationSettingsFlow(): Flow<ApplicationSettings>
 }
