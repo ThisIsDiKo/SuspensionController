@@ -15,9 +15,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.dikoresearchsuspensioncontroller.feature_controller.presentation.startscreen.StartScreen
 import com.dikoresearchsuspensioncontroller.ui.theme.SuspensionControllerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.welie.blessed.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -45,10 +45,10 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 NavHost(navController = navController, startDestination = "startscreen"){
-                    composable("startscreen"){}
+                    composable("startscreen"){ StartScreen(navController = navController)}
                     composable("scanscreen"){}
                     composable("controlscreen"){}
-                    composable("preferencescreen"){}
+                    composable("settingsescreen"){}
                 }
             }
         }
