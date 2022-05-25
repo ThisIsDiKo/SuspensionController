@@ -7,9 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.local.DataStoreRepository
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.usecases.suspensioncontroller.SuspensionControllerUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -36,19 +34,41 @@ class StartScreenViewModel @Inject constructor(
 
     private var deviceAddress = ""
 
-    init {
-        viewModelScope.launch {
-            applicationSettingsFlow.collectLatest { settings ->
-                deviceAddress = settings.deviceAddress
-                Timber.i("Got device address from  settings: $deviceAddress")
-            }
+//    init {
+////        viewModelScope.launch {
+////            applicationSettingsFlow.collectLatest { settings ->
+////                deviceAddress = settings.deviceAddress
+////                Timber.i("Got device address from  settings: $deviceAddress")
+////            }
+////        }
+//    }
+
+    fun readDeviceAddress(){
+        viewModelScope.launch{
+            Timber.i("Reading device address")
+            deviceAddress = applicationSettingsFlow.first().deviceAddress
+            Timber.i("Got device address from  settings: $deviceAddress")
+            startConnection()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Timber.e("Start screen view model is cleared")
     }
 
     fun onStartButtonClicked(){
         viewModelScope.launch {
             _eventFlow.emit(
                 UiEventStartScreen.NavigateTo("scanscreen")
+            )
+        }
+    }
+
+    fun onNavigateClicked(){
+        viewModelScope.launch {
+            _eventFlow.emit(
+                UiEventStartScreen.NavigateTo("settingsscreen")
             )
         }
     }
@@ -64,7 +84,7 @@ class StartScreenViewModel @Inject constructor(
                         _showConnectionProgressBar.value = false
                         _showReconnectButton.value = true
                         _eventFlow.emit(
-                            UiEventStartScreen.MakeToast("Can't connect to device $deviceAddress")
+                            UiEventStartScreen.ShowSnackbar("Can't connect to device $deviceAddress")
                         )
                     },
                     {
@@ -78,6 +98,7 @@ class StartScreenViewModel @Inject constructor(
     }
 
     fun startConnection(){
+        Timber.i("Connecting to $deviceAddress")
         viewModelScope.launch {
             if (deviceAddress.isNotBlank()){
                 _showStartButton.value = false
@@ -88,7 +109,7 @@ class StartScreenViewModel @Inject constructor(
                             _showConnectionProgressBar.value = false
                             _showReconnectButton.value = true
                             _eventFlow.emit(
-                                UiEventStartScreen.MakeToast("Can't connect to device $deviceAddress")
+                                UiEventStartScreen.ShowSnackbar("Can't connect to device $deviceAddress")
                             )
                         },
                         {

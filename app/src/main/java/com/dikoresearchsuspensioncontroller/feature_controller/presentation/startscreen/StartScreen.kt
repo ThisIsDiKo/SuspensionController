@@ -7,23 +7,24 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import com.dikoresearchsuspensioncontroller.R
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -35,6 +36,8 @@ fun StartScreen(
     val showProgressBar = viewModel.showConnectionProgressBar
     val showStartButton = viewModel.showStartButton
     val showReconnectButton = viewModel.showReconnectButton
+
+    val scaffoldState = rememberScaffoldState()
 
     val showPermissionInfoDialog = remember { mutableStateOf(false)}
 
@@ -58,7 +61,8 @@ fun StartScreen(
                     if (bluetoothAdapter != null) {
                         if (bluetoothAdapter.isEnabled){
                             if (permissionState.allPermissionsGranted){
-                                viewModel.startConnection()
+                                viewModel.readDeviceAddress()
+                                //viewModel.startConnection()
                             }
                             else{
                                 showPermissionInfoDialog.value = true
@@ -72,6 +76,12 @@ fun StartScreen(
                 else if (event == Lifecycle.Event.ON_PAUSE){
                     Timber.i("On Paused")
                 }
+                else if (event == Lifecycle.Event.ON_STOP){
+                    Timber.i("On Stopped")
+                }
+                else if (event == Lifecycle.Event.ON_DESTROY){
+                    Timber.i("On Destroy")
+                }
             }
             lifecycleOwner.lifecycle.addObserver(observer)
             onDispose {
@@ -80,15 +90,35 @@ fun StartScreen(
         }
     )
 
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event ->
+            when(event){
+                is UiEventStartScreen.NavigateTo -> {
+                    navController.navigate(event.destination)
+                }
+                is UiEventStartScreen.ShowSnackbar -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                }
+            }
+        }
+    }
+
     Scaffold(
+        scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Hello")
+
                 },
                 actions = {
                     IconButton(onClick = {
-                        navController.navigate("settingsscreen")
+                        //Такой переход вызывает событие onCleared() во viewModel
+                        viewModel.onNavigateClicked()
+
+                        //Такой переход не вызывает событие onCleared() во viewModel
+                        //navController.navigate("settingsscreen")
                     }) {
                         Icon(Icons.Filled.Settings, contentDescription = "")
                     }
@@ -131,14 +161,25 @@ fun StartScreen(
         }
 
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
 
+            Icon(
+                painter = painterResource(id = R.drawable.ic_android_black_100dp),
+                contentDescription = null,
+                modifier = Modifier.size(200.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             if (showProgressBar.value){
                 CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(text = "Connecting to device ...")
             }
 
             if (showStartButton.value){

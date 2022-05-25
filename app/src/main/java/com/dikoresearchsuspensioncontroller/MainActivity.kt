@@ -15,6 +15,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.ControlScreen
+import com.dikoresearchsuspensioncontroller.feature_controller.presentation.scanscreen.ScanScreen
+import com.dikoresearchsuspensioncontroller.feature_controller.presentation.settingsscreen.SettingsScreen
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.startscreen.StartScreen
 import com.dikoresearchsuspensioncontroller.ui.theme.SuspensionControllerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -46,9 +49,9 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(navController = navController, startDestination = "startscreen"){
                     composable("startscreen"){ StartScreen(navController = navController)}
-                    composable("scanscreen"){}
-                    composable("controlscreen"){}
-                    composable("settingsescreen"){}
+                    composable("scanscreen"){ScanScreen(navController = navController)}
+                    composable("controlscreen"){ControlScreen(navController = navController)}
+                    composable("settingsscreen"){ SettingsScreen(navController = navController)}
                 }
             }
         }

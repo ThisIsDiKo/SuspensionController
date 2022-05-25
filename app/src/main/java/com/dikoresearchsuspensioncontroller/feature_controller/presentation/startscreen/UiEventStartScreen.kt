@@ -2,5 +2,5 @@ package com.dikoresearchsuspensioncontroller.feature_controller.presentation.sta
 
 sealed class UiEventStartScreen{
     data class NavigateTo(val destination: String): UiEventStartScreen()
-    data class MakeToast(val message: String): UiEventStartScreen()
+    data class ShowSnackbar(val message: String): UiEventStartScreen()
 }
