@@ -68,6 +68,7 @@ dependencies {
     //Accompanist
     implementation "com.google.accompanist:accompanist-permissions:0.24.4-alpha"
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.24.5-alpha"
+    implementation "com.google.accompanist:accompanist-swiperefresh:0.24.9-beta"
 
     //Blessed for android BLE
     implementation "com.github.weliem:blessed-android-coroutines:0.3.0"

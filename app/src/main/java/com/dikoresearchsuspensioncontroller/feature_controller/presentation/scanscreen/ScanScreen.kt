@@ -33,10 +33,11 @@ import androidx.navigation.NavController
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.scanscreen.components.DeviceCard
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ScanScreen(
     navController: NavController,
@@ -115,27 +116,36 @@ fun ScanScreen(
                 }
             }
         }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
+        SwipeRefresh(
+            modifier = Modifier.fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            state = rememberSwipeRefreshState(isRefreshing = viewModel.refreshScanResults.value),
+            onRefresh = {
+                viewModel.refreshScanning()
+            }
         ){
-            items(items = bleDevices){ device ->
-                DeviceCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                                   viewModel.deviceSelect(device)
-                        },
-                    deviceMacAddress = device.MAC,
-                    deviceName = device.name,
-                    rssi = device.rssi
-                )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                    //.padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ){
+                items(items = bleDevices){ device ->
+                    DeviceCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.deviceSelect(device)
+                            },
+                        deviceMacAddress = device.MAC,
+                        deviceName = device.name,
+                        rssi = device.rssi
+                    )
+                }
             }
         }
+
 
     }
 }

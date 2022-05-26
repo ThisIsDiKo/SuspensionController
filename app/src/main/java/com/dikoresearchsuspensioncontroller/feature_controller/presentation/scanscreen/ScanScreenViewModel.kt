@@ -31,6 +31,9 @@ class ScanScreenViewModel @Inject constructor(
     private val _showConnectionDialog = mutableStateOf(false)
     val showConnectionDialog: State<Boolean> = _showConnectionDialog
 
+    private val _refreshScanResults = mutableStateOf(false)
+    val refreshScanResults: State<Boolean> = _refreshScanResults
+
     private val _eventFlow = MutableSharedFlow<UiEventScanScreen>()
     val eventFlow = _eventFlow.asSharedFlow()
 
@@ -74,7 +77,9 @@ class ScanScreenViewModel @Inject constructor(
     }
 
     fun refreshScanning(){
+        _refreshScanResults.value = true
         _bleDevices.clear()
+        _refreshScanResults.value = false
     }
 
     fun deviceSelect(device: BleSimpleDevice){
