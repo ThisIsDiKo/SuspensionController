@@ -37,6 +37,8 @@ fun ControlScreen(
     val controllerData = viewModel.sensorsDataState.value
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    val showReconnectionDialog = viewModel.showReconnectionDialog
+
     LaunchedEffect(key1 = true){
         viewModel.eventFlow.collectLatest { event ->
             when(event){
@@ -98,6 +100,19 @@ fun ControlScreen(
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (showReconnectionDialog.value){
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(text = "Reconnecting")
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,

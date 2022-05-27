@@ -26,4 +26,6 @@ interface SuspensionControllerRepository {
     suspend fun writeConfig(): Either<BleError, Unit>
     suspend fun readConfig(): Either<BleError, ControllerConfig>
     suspend fun writeCalibrationCommand(): Either<BleError, Unit>
+
+    fun autoConnectToPeripheral(peripheral: BluetoothPeripheral)
 }

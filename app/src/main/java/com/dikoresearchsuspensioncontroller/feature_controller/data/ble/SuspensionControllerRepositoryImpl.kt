@@ -10,6 +10,7 @@ import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.cont
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.error.BleError
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.ble.SuspensionControllerRepository
 import com.welie.blessed.*
+import timber.log.Timber
 
 class SuspensionControllerRepositoryImpl(
     private val bleManager: BleManager
@@ -127,6 +128,10 @@ class SuspensionControllerRepositoryImpl(
         TODO("Not yet implemented")
     }
 
+    override fun autoConnectToPeripheral(peripheral: BluetoothPeripheral) {
+        bleManager.bleCentralManager.autoConnectPeripheral(peripheral)
+    }
+
     @Throws(InvalidReceivedDataException::class)
     suspend fun readRawSensorsValues(): SensorsRawValues{
         val byteArray = bleManager.blePeripheral?.readCharacteristic(
@@ -135,11 +140,13 @@ class SuspensionControllerRepositoryImpl(
         )?: ByteArray(1)
 
         if (byteArray.size == BleCommunicationParameters.sensorsPacketLength){
-            val p1 = (byteArray[1].toInt() shl 8) + byteArray[0].toInt()
-            val p2 = (byteArray[3].toInt() shl 8) + byteArray[2].toInt()
-            val p3 = (byteArray[5].toInt() shl 8) + byteArray[4].toInt()
-            val p4 = (byteArray[7].toInt() shl 8) + byteArray[6].toInt()
-            val p5 = (byteArray[9].toInt() shl 8) + byteArray[8].toInt()
+            val p1 = (byteArray[1].toInt() shl 8) + byteArray[0].toUByte().toInt()
+            val p2 = (byteArray[3].toInt() shl 8) + byteArray[2].toUByte().toInt()
+            val p3 = (byteArray[5].toInt() shl 8) + byteArray[4].toUByte().toInt()
+            val p4 = (byteArray[7].toInt() shl 8) + byteArray[6].toUByte().toInt()
+            val p5 = (byteArray[9].toInt() shl 8) + byteArray[8].toUByte().toInt()
+
+            Timber.i("Read data $p1 (${byteArray[1]} ${byteArray[0]}) $p2 (${byteArray[3]} ${byteArray[2]}) $p5 (${byteArray[9]} ${byteArray[8]})")
 
             val pos1 = byteArray[10].toInt()
             val pos2 = byteArray[11].toInt()

@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.ApplicationSettings
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.PressureSensor
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.PressureUnits
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.OutputState
@@ -12,13 +13,11 @@ import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.cont
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.SensorsValues
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.local.DataStoreRepository
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.usecases.suspensioncontroller.SuspensionControllerUseCases
+import com.welie.blessed.ConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -30,6 +29,8 @@ class ControlScreenViewModel @Inject constructor(
 ): ViewModel() {
 
     private var readingJob: Job? = null
+
+    private val applicationSettingsFlow = dataStoreManager.getApplicationSettingsFlow()
 
     private val _eventFlow = MutableSharedFlow<UiEventControlScreen>()
     val eventFlow = _eventFlow.asSharedFlow()
@@ -43,8 +44,37 @@ class ControlScreenViewModel @Inject constructor(
     private var selectedPressureSensor: PressureSensor = PressureSensor.China_0_20()
     private var selectedPressureUnits: PressureUnits = PressureUnits.Bar()
 
+    private var deviceMacAddress = ""
+
     init {
-        //TODO Add observing status
+        suspensionControllerUseCases.setConnectionStatusObserver {peripheral, state ->
+            Timber.e("Peripheral ${peripheral.address} change state to $state")
+            if (state == ConnectionState.DISCONNECTED && peripheral.address == deviceMacAddress){
+                changeReconnectionDialogState(true)
+                stopReadingSensorsValues()
+                suspensionControllerUseCases.autoConnectPeripheral(peripheral)
+                Timber.e("Trying to reconnect ${peripheral.address}")
+            }
+            else if (state == ConnectionState.CONNECTED){
+                Timber.e("${peripheral.address} reconnected mtu is ${peripheral.currentMtu}")
+                changeReconnectionDialogState(false)
+                if (readingJob == null){
+                    startReadingSensorsValues()
+                }
+
+            }
+        }
+
+        viewModelScope.launch {
+            applicationSettingsFlow.collectLatest { settings ->
+                deviceMacAddress = settings.deviceAddress
+                selectedPressureSensor = settings.pressureSensorType
+                selectedPressureUnits = settings.pressureUnits
+            }
+        }
+    }
+    fun changeReconnectionDialogState(state: Boolean){
+        _showReconnectionDialog.value = state
     }
 
     fun writeOutputs(msg: String){
@@ -97,6 +127,7 @@ class ControlScreenViewModel @Inject constructor(
                         },
                         {rawValues ->
                             val sensorsValues = SensorsValues()
+                            //Timber.i("Sensors raw data: $rawValues")
                             when(selectedPressureSensor){
                                 is PressureSensor.China_0_20 -> {
                                     sensorsValues.calculateFromChinaSensor(rawValues)
@@ -108,7 +139,7 @@ class ControlScreenViewModel @Inject constructor(
 
                             when(selectedPressureUnits){
                                 is PressureUnits.Bar -> {
-                                    Timber.i("Sensors data: $sensorsValues")
+                                    //Timber.i("Sensors data: $sensorsValues")
                                     _sensorsDataState.value = sensorsDataState.value.copy(
                                         pressure1 = if(sensorsValues.pressure1 >= 0.0)  String.format("%.1f", sensorsValues.pressure1) else "----",
                                         pressure2 = if(sensorsValues.pressure2 >= 0.0)  String.format("%.1f", sensorsValues.pressure2) else "----",
@@ -117,7 +148,7 @@ class ControlScreenViewModel @Inject constructor(
                                 }
                                 is PressureUnits.Psi -> {
                                     sensorsValues.convertToPsi()
-                                    Timber.i("Sensors data: $sensorsValues")
+                                    //Timber.i("Sensors data: $sensorsValues")
                                     _sensorsDataState.value = sensorsDataState.value.copy(
                                         pressure1 = if(sensorsValues.pressure1 >= 0.0)  String.format("%.0f", sensorsValues.pressure1) else "----",
                                         pressure2 = if(sensorsValues.pressure2 >= 0.0)  String.format("%.0f", sensorsValues.pressure2) else "----",
@@ -127,7 +158,7 @@ class ControlScreenViewModel @Inject constructor(
                             }
                         }
                     )
-                delay(1500)
+                delay(500)
             }
 
         }
