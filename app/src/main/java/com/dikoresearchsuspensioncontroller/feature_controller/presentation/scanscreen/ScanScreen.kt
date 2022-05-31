@@ -11,10 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -23,7 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -99,51 +98,65 @@ fun ScanScreen(
                 onDismissRequest = { /*TODO*/ },
                 DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
             ) {
-                Box(
-                    contentAlignment= Alignment.Center,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .background(Color.White, shape = RoundedCornerShape(12.dp))
-                ) {
+                Card(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp)
+                ){
                     Column(
-                        modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.padding(6.dp, 0.dp, 0.dp, 0.dp))
-                        Text(text = "Connecting...", Modifier.padding(0.dp, 8.dp, 0.dp, 0.dp))
+                        CircularProgressIndicator(modifier = Modifier.padding(8.dp))
+                        Text(text = "Connecting...",modifier = Modifier.padding(8.dp))
                     }
                 }
             }
         }
         SwipeRefresh(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(padding),
             state = rememberSwipeRefreshState(isRefreshing = viewModel.refreshScanResults.value),
             onRefresh = {
                 viewModel.refreshScanning()
             }
         ){
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth(),
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    modifier = Modifier.padding(8.dp),
+                    text = "Searching for Devices...",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth(),
                     //.padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ){
-                items(items = bleDevices){ device ->
-                    DeviceCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.deviceSelect(device)
-                            },
-                        deviceMacAddress = device.MAC,
-                        deviceName = device.name,
-                        rssi = device.rssi
-                    )
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ){
+                    items(items = bleDevices){ device ->
+                        DeviceCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.deviceSelect(device)
+                                },
+                            deviceMacAddress = device.MAC,
+                            deviceName = device.name,
+                            rssi = device.rssi
+                        )
+                    }
                 }
             }
+
         }
 
 

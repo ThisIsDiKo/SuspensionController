@@ -34,7 +34,7 @@ fun AirBag(
         style = textStyle,
         textAlign = TextAlign.Center,
         modifier = modifier
-            .wrapContentSize()
+            .wrapContentSize(Alignment.Center)
             .graphicsLayer {
                 shadowElevation = 8.dp.toPx()
                 shape = AirBagShape()

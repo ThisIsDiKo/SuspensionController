@@ -1,5 +1,6 @@
 package com.dikoresearchsuspensioncontroller.feature_controller.presentation.settingsscreen
 
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -8,6 +9,7 @@ import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.*
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.local.DataStoreRepository
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.usecases.suspensioncontroller.SuspensionControllerUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -25,6 +27,9 @@ class SettingsScreenViewModel @Inject constructor(
 
     private val _eventFlow = MutableSharedFlow<UiEventSettingsScreen>()
     val eventFlow = _eventFlow.asSharedFlow()
+
+    private val _showClearDialog = mutableStateOf(false)
+    val showClearDialog: State<Boolean> = _showClearDialog
 
     fun setUseTankPressure(use: Boolean){
         viewModelScope.launch {
@@ -57,6 +62,12 @@ class SettingsScreenViewModel @Inject constructor(
         }
     }
 
+    fun disconnect(){
+        viewModelScope.launch(Dispatchers.IO) {
+            suspensionControllerUseCases.disconnectFromPeripheral()
+        }
+    }
+
     fun clearDeviceInfo(deviceInfo: ApplicationSettings){
         viewModelScope.launch {
             suspensionControllerUseCases.disconnectFromPeripheral()
@@ -73,5 +84,13 @@ class SettingsScreenViewModel @Inject constructor(
                 UiEventSettingsScreen.NavigateTo("scanscreen")
             )
         }
+    }
+
+    fun showClearDialog(){
+        _showClearDialog.value = true
+    }
+
+    fun dialogDismissRequest(){
+        _showClearDialog.value = false
     }
 }

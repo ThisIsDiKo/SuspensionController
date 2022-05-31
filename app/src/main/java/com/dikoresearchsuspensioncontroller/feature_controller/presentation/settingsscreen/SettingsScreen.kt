@@ -1,7 +1,9 @@
 package com.dikoresearchsuspensioncontroller.feature_controller.presentation.settingsscreen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -11,9 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.*
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.scanscreen.UiEventScanScreen
 import kotlinx.coroutines.flow.collectLatest
@@ -85,6 +92,59 @@ fun SettingsScreen(
             )
         },
     ) { padding ->
+
+        if (viewModel.showClearDialog.value){
+            Dialog(onDismissRequest = {
+                viewModel.dialogDismissRequest()
+            }) {
+                Card(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text(
+                            text = "Clear device info",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Delete device info and go to scan screen",
+                            fontSize = 12.sp,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ){
+                            TextButton(onClick = {viewModel.dialogDismissRequest()}) {
+                                Text(text = "Cancel")
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            TextButton(onClick = {viewModel.clearDeviceInfo(settings.value)}) {
+                                Text(
+                                    text = "Clear",
+                                    color = Color.Gray
+                                )
+                            }
+//                            Button(onClick = {viewModel.dialogDismissRequest()}) {
+//                                Text(text = "Cancel")
+//                            }
+//                            Spacer(modifier = Modifier.width(10.dp))
+//                            Button(
+//                                onClick = {viewModel.clearDeviceInfo(settings.value)},
+//                                modifier = Modifier.background(Color.White)
+//                            ) {
+//                                Text(text = "Clear")
+//                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(padding),
@@ -94,7 +154,7 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(6.dp),
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -109,7 +169,7 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(6.dp),
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -124,7 +184,7 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(6.dp),
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -139,14 +199,15 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(6.dp),
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = "Show tank pressure"
                 )
-                Checkbox(
+
+                Switch(
                     checked = settings.value.useTankPressure,
                     onCheckedChange = {
                         viewModel.setUseTankPressure(it)
@@ -157,7 +218,7 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(6.dp),
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -171,6 +232,7 @@ fun SettingsScreen(
                 ){
                     Text(
                         text = settings.value.deviceMode.alias,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { expanded.value = true }
                     )
                     DropdownMenu(
@@ -197,7 +259,7 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(6.dp),
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -211,6 +273,7 @@ fun SettingsScreen(
                 ){
                     Text(
                         text = settings.value.pressureSensorType.alias,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { expanded.value = true }
                     )
                     DropdownMenu(
@@ -237,7 +300,7 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(6.dp),
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -251,6 +314,7 @@ fun SettingsScreen(
                 ){
                     Text(
                         text = settings.value.pressureUnits.alias,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { expanded.value = true }
                     )
                     DropdownMenu(
@@ -277,12 +341,17 @@ fun SettingsScreen(
             Divider(startIndent = 6.dp, thickness = 1.dp, color = Color.Black)
             Button(
                 onClick = {
-                    viewModel.clearDeviceInfo(settings.value)
+                    viewModel.showClearDialog()
                 }
             ) {
                 Text(text = "Clear Device info")
             }
         }
     }
+}
 
+@Preview
+@Composable
+fun SettingsScreenPreview(){
+    SettingsScreen(navController = rememberNavController())
 }

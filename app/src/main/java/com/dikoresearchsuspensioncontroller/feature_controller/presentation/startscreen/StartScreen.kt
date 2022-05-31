@@ -169,7 +169,7 @@ fun StartScreen(
         ) {
 
             Icon(
-                painter = painterResource(id = R.drawable.ic_android_black_100dp),
+                painter = painterResource(id = R.drawable.ic_air_bag),
                 contentDescription = null,
                 modifier = Modifier.size(200.dp)
             )

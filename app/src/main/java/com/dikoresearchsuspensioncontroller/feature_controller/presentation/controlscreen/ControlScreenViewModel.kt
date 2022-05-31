@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.ApplicationSettings
+import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.DeviceMode
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.PressureSensor
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.PressureUnits
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.OutputState
@@ -41,12 +42,51 @@ class ControlScreenViewModel @Inject constructor(
     private val _sensorsDataState = mutableStateOf(SensorsDataState())
     val sensorsDataState: State<SensorsDataState> = _sensorsDataState
 
+    private val _showPressureInTank = mutableStateOf(false)
+    val showPressureInTank: State<Boolean> = _showPressureInTank
+
+    private val _deviceMode = mutableStateOf(DeviceMode.DoubleWay().alias)
+    val deviceMode: State<String> = _deviceMode
+
     private var selectedPressureSensor: PressureSensor = PressureSensor.China_0_20()
     private var selectedPressureUnits: PressureUnits = PressureUnits.Bar()
 
     private var deviceMacAddress = ""
 
     init {
+//        suspensionControllerUseCases.setConnectionStatusObserver {peripheral, state ->
+//            Timber.e("Peripheral ${peripheral.address} change state to $state")
+//            if (state == ConnectionState.DISCONNECTED && peripheral.address == deviceMacAddress){
+//                changeReconnectionDialogState(true)
+//                stopReadingSensorsValues()
+//                suspensionControllerUseCases.autoConnectPeripheral(peripheral)
+//                Timber.e("Trying to reconnect ${peripheral.address}")
+//            }
+//            else if (state == ConnectionState.CONNECTED){
+//                Timber.e("${peripheral.address} reconnected mtu is ${peripheral.currentMtu}")
+//                changeReconnectionDialogState(false)
+//                if (readingJob == null){
+//                    startReadingSensorsValues()
+//                }
+//
+//            }
+//        }
+
+        viewModelScope.launch {
+            applicationSettingsFlow.collectLatest { settings ->
+                deviceMacAddress = settings.deviceAddress
+                selectedPressureSensor = settings.pressureSensorType
+                selectedPressureUnits = settings.pressureUnits
+                _showPressureInTank.value = settings.useTankPressure
+                _deviceMode.value = settings.deviceMode.alias
+            }
+        }
+    }
+    fun changeReconnectionDialogState(state: Boolean){
+        _showReconnectionDialog.value = state
+    }
+
+    fun setConnectionStateObserver(){
         suspensionControllerUseCases.setConnectionStatusObserver {peripheral, state ->
             Timber.e("Peripheral ${peripheral.address} change state to $state")
             if (state == ConnectionState.DISCONNECTED && peripheral.address == deviceMacAddress){
@@ -64,17 +104,11 @@ class ControlScreenViewModel @Inject constructor(
 
             }
         }
-
-        viewModelScope.launch {
-            applicationSettingsFlow.collectLatest { settings ->
-                deviceMacAddress = settings.deviceAddress
-                selectedPressureSensor = settings.pressureSensorType
-                selectedPressureUnits = settings.pressureUnits
-            }
-        }
     }
-    fun changeReconnectionDialogState(state: Boolean){
-        _showReconnectionDialog.value = state
+
+    fun clearConnectionStateObserver(){
+        suspensionControllerUseCases.setConnectionStatusObserver {peripheral, state ->
+        }
     }
 
     fun writeOutputs(msg: String){
@@ -113,6 +147,9 @@ class ControlScreenViewModel @Inject constructor(
     }
 
     fun startReadingSensorsValues(){
+        if (readingJob != null) return
+        //TODO: need to get connection status to start this job
+
         readingJob = viewModelScope.launch {
             while(true){
                 suspensionControllerUseCases.readSensorsValues()

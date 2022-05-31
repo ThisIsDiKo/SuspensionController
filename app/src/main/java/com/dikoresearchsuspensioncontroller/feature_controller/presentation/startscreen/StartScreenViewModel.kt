@@ -102,6 +102,7 @@ class StartScreenViewModel @Inject constructor(
         viewModelScope.launch {
             if (deviceAddress.isNotBlank()){
                 _showStartButton.value = false
+                _showReconnectButton.value = false
                 _showConnectionProgressBar.value = true
                 suspensionControllerUseCases.connectToPeripheral(deviceAddress)
                     .fold(
