@@ -99,7 +99,11 @@ class ControlScreenViewModel @Inject constructor(
                 Timber.e("${peripheral.address} reconnected mtu is ${peripheral.currentMtu}")
                 changeReconnectionDialogState(false)
                 if (readingJob == null){
-                    startReadingSensorsValues()
+                    viewModelScope.launch {
+                        _eventFlow.emit(
+                            UiEventControlScreen.StartReadingSensors
+                        )
+                    }
                 }
 
             }

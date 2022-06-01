@@ -78,6 +78,9 @@ fun ControlScreen(
                         }
                     }
                 }
+                is UiEventControlScreen.StartReadingSensors -> {
+                    viewModel.startReadingSensorsValues()
+                }
             }
         }
     }
@@ -100,7 +103,7 @@ fun ControlScreen(
                 }
                 else if (event == Lifecycle.Event.ON_PAUSE){
                     viewModel.writeOutputs("0000")
-                    viewModel.clearConnectionStateObserver()
+                    //viewModel.clearConnectionStateObserver()
                     viewModel.stopReadingSensorsValues()
                 }
             }

@@ -121,7 +121,12 @@ class SuspensionControllerRepositoryImpl(
     }
 
     override suspend fun readConfig(): Either<BleError, ControllerConfig> {
-        TODO("Not yet implemented")
+        return try{
+            readRawConfig().right()
+        }
+        catch (e: Exception){
+            BleError.UnknownError(e.message ?: "").left()
+        }
     }
 
     override suspend fun writeCalibrationCommand(): Either<BleError, Unit> {
@@ -168,6 +173,33 @@ class SuspensionControllerRepositoryImpl(
         }
         else {
             throw InvalidReceivedDataException("Read Sensors got ${byteArray.size} bytes, need ${BleCommunicationParameters.sensorsPacketLength}")
+        }
+    }
+
+    @Throws(InvalidReceivedDataException::class)
+    suspend fun readRawConfig(): ControllerConfig{
+        val byteArray = bleManager.blePeripheral?.readCharacteristic(
+            serviceUUID = ServicesUUID.CONTROL_SERVICE_UUID,
+            characteristicUUID = ServicesUUID.CONFIG_CHAR_UUID
+        )?: ByteArray(1)
+
+        if (byteArray.size == BleCommunicationParameters.configPacketLength){
+            val majorVersion = byteArray[0].toUByte().toInt()
+            val minorVersion = byteArray[1].toUByte().toInt()
+            val subVersion = byteArray[2].toUByte().toInt()
+            val numberOfCounters = byteArray[3].toUByte().toInt()
+            val hasTank = byteArray[4].toUByte().toInt() == 1
+
+
+
+            return ControllerConfig(
+                version = "$majorVersion.$minorVersion.$subVersion",
+                hasTank = hasTank,
+                numberOfCounters = numberOfCounters
+            )
+        }
+        else {
+            throw InvalidReceivedDataException("Read Config data got ${byteArray.size} bytes, need ${BleCommunicationParameters.sensorsPacketLength}")
         }
     }
 }

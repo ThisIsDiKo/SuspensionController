@@ -4,4 +4,5 @@ package com.dikoresearchsuspensioncontroller.feature_controller.presentation.con
 sealed class UiEventControlScreen{
     data class ShowSnackbar(val message: String): UiEventControlScreen()
     data class NavigateTo(val destination: String): UiEventControlScreen()
+    object StartReadingSensors: UiEventControlScreen()
 }

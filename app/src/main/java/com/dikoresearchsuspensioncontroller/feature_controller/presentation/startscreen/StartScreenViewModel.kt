@@ -43,12 +43,20 @@ class StartScreenViewModel @Inject constructor(
 ////        }
 //    }
 
+    private var isConnecting = false
+
     fun readDeviceAddress(){
         viewModelScope.launch{
             Timber.i("Reading device address")
             deviceAddress = applicationSettingsFlow.first().deviceAddress
             Timber.i("Got device address from  settings: $deviceAddress")
-            startConnection()
+            if (!isConnecting && !showReconnectButton.value){
+                Timber.i("Starting connection after onResume")
+                startConnection()
+            }
+            else {
+                Timber.i("trying to start connection but device is already in connecting mode")
+            }
         }
     }
 
@@ -74,31 +82,33 @@ class StartScreenViewModel @Inject constructor(
     }
 
     fun onReconnectButtonClicked(){
-        viewModelScope.launch {
-            _showReconnectButton.value = false
-            _showConnectionProgressBar.value = true
-
-            suspensionControllerUseCases.connectToPeripheral(deviceAddress)
-                .fold(
-                    {
-                        _showConnectionProgressBar.value = false
-                        _showReconnectButton.value = true
-                        _eventFlow.emit(
-                            UiEventStartScreen.ShowSnackbar("Can't connect to device $deviceAddress")
-                        )
-                    },
-                    {
-                        _showConnectionProgressBar.value = false
-                        _eventFlow.emit(
-                            UiEventStartScreen.NavigateTo("controlscreen")
-                        )
-                    }
-                )
-        }
+        startConnection()
+//        viewModelScope.launch {
+//            _showReconnectButton.value = false
+//            _showConnectionProgressBar.value = true
+//
+//            suspensionControllerUseCases.connectToPeripheral(deviceAddress)
+//                .fold(
+//                    {
+//                        _showConnectionProgressBar.value = false
+//                        _showReconnectButton.value = true
+//                        _eventFlow.emit(
+//                            UiEventStartScreen.ShowSnackbar("Can't connect to device $deviceAddress")
+//                        )
+//                    },
+//                    {
+//                        _showConnectionProgressBar.value = false
+//                        _eventFlow.emit(
+//                            UiEventStartScreen.NavigateTo("controlscreen")
+//                        )
+//                    }
+//                )
+//        }
     }
 
     fun startConnection(){
         Timber.i("Connecting to $deviceAddress")
+        isConnecting = true
         viewModelScope.launch {
             if (deviceAddress.isNotBlank()){
                 _showStartButton.value = false
@@ -112,14 +122,30 @@ class StartScreenViewModel @Inject constructor(
                             _eventFlow.emit(
                                 UiEventStartScreen.ShowSnackbar("Can't connect to device $deviceAddress")
                             )
+
                         },
                         {
                             _showConnectionProgressBar.value = false
-                            _eventFlow.emit(
-                                UiEventStartScreen.NavigateTo("controlscreen")
-                            )
+                            suspensionControllerUseCases.readControllerConfig()
+                                .fold(
+                                    {
+                                        _eventFlow.emit(
+                                            UiEventStartScreen.ShowSnackbar("Can't read config of device $deviceAddress")
+                                        )
+                                        _showReconnectButton.value = true
+                                    },
+                                    {config ->
+                                        Timber.i("Got controller config: $config")
+                                        dataStoreManager.setDeviceFirmwareVersion(config.version)
+
+                                        _eventFlow.emit(
+                                            UiEventStartScreen.NavigateTo("controlscreen")
+                                        )
+                                    }
+                                )
                         }
                     )
+                isConnecting = false
             }
             else {
                 _showStartButton.value = true

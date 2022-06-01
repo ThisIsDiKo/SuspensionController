@@ -70,6 +70,9 @@ class SettingsScreenViewModel @Inject constructor(
 
     fun clearDeviceInfo(deviceInfo: ApplicationSettings){
         viewModelScope.launch {
+            suspensionControllerUseCases.setConnectionStatusObserver{peripheral, state ->
+            }
+
             suspensionControllerUseCases.disconnectFromPeripheral()
             dataStoreManager.setDeviceAddress("")
             dataStoreManager.setDeviceName("")

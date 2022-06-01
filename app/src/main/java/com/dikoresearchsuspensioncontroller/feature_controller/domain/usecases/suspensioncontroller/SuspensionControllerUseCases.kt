@@ -9,5 +9,6 @@ data class SuspensionControllerUseCases(
     val stopScanForPeripherals: StopScanForPeripherals,
     val requestMtuFromPeripheral: RequestMtuFromPeripheral,
     val setConnectionStatusObserver: SetConnectionStatusObserver,
-    val autoConnectPeripheral: AutoConnectPeripheral
+    val autoConnectPeripheral: AutoConnectPeripheral,
+    val readControllerConfig: ReadControllerConfig
 )

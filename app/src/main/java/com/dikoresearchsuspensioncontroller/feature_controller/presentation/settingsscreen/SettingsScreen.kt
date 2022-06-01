@@ -189,6 +189,21 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
+                    text = "Firmware version"
+                )
+                Text(
+                    text = settings.value.deviceFirmwareVersion,
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
                     text = "Device Type"
                 )
                 Text(
@@ -348,10 +363,4 @@ fun SettingsScreen(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun SettingsScreenPreview(){
-    SettingsScreen(navController = rememberNavController())
 }
