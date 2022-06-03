@@ -91,6 +91,7 @@ fun ControlScreen(
             val observer = LifecycleEventObserver{ _, event ->
                 if (event == Lifecycle.Event.ON_RESUME){
                     if (permissionState.allPermissionsGranted){
+                        viewModel.setScreenActive(true)
                         viewModel.setConnectionStateObserver()
                         viewModel.startReadingSensorsValues()
                     }
@@ -102,6 +103,7 @@ fun ControlScreen(
 
                 }
                 else if (event == Lifecycle.Event.ON_PAUSE){
+                    viewModel.setScreenActive(false)
                     viewModel.writeOutputs("0000")
                     //viewModel.clearConnectionStateObserver()
                     viewModel.stopReadingSensorsValues()

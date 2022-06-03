@@ -53,6 +53,8 @@ class ControlScreenViewModel @Inject constructor(
 
     private var deviceMacAddress = ""
 
+    private var isScreenActive = false
+
     init {
 //        suspensionControllerUseCases.setConnectionStatusObserver {peripheral, state ->
 //            Timber.e("Peripheral ${peripheral.address} change state to $state")
@@ -98,12 +100,8 @@ class ControlScreenViewModel @Inject constructor(
             else if (state == ConnectionState.CONNECTED){
                 Timber.e("${peripheral.address} reconnected mtu is ${peripheral.currentMtu}")
                 changeReconnectionDialogState(false)
-                if (readingJob == null){
-                    viewModelScope.launch {
-                        _eventFlow.emit(
-                            UiEventControlScreen.StartReadingSensors
-                        )
-                    }
+                if (isScreenActive){
+                    startReadingSensorsValues()
                 }
 
             }
@@ -148,6 +146,10 @@ class ControlScreenViewModel @Inject constructor(
                     }
                 )
         }
+    }
+
+    fun setScreenActive(status: Boolean){
+        isScreenActive = status
     }
 
     fun startReadingSensorsValues(){
@@ -199,9 +201,8 @@ class ControlScreenViewModel @Inject constructor(
                             }
                         }
                     )
-                delay(500)
+                delay(200)
             }
-
         }
     }
 
