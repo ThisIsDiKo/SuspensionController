@@ -16,6 +16,7 @@ import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.usecases.suspensioncontroller.SuspensionControllerUseCases
 import com.welie.blessed.ConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -130,7 +131,7 @@ class ControlScreenViewModel @Inject constructor(
             }
             else -> {}
         }
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             suspensionControllerUseCases.writeOutputs(outputsValue)
                 .fold(
                     {
@@ -156,7 +157,7 @@ class ControlScreenViewModel @Inject constructor(
         if (readingJob != null) return
         //TODO: need to get connection status to start this job
 
-        readingJob = viewModelScope.launch {
+        readingJob = viewModelScope.launch(Dispatchers.IO) {
             while(true){
                 suspensionControllerUseCases.readSensorsValues()
                     .fold(
