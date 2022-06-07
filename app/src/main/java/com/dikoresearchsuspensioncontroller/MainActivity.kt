@@ -19,10 +19,12 @@ import com.dikoresearchsuspensioncontroller.feature_controller.presentation.cont
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.scanscreen.ScanScreen
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.settingsscreen.SettingsScreen
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.startscreen.StartScreen
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.ChartScreen
 import com.dikoresearchsuspensioncontroller.ui.theme.SuspensionControllerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import kotlin.random.Random
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -47,11 +49,17 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
 
-                NavHost(navController = navController, startDestination = "startscreen"){
+                NavHost(navController = navController, startDestination = "chartscreen"){
                     composable("startscreen"){ StartScreen(navController = navController)}
                     composable("scanscreen"){ScanScreen(navController = navController)}
                     composable("controlscreen"){ControlScreen(navController = navController)}
                     composable("settingsscreen"){ SettingsScreen(navController = navController)}
+                    composable("chartscreen"){
+                        val dots = mutableListOf<Float>().apply {
+                            repeat(100) {add(Random.nextFloat()*100f)}
+                        }
+                        ChartScreen(dots)
+                    }
                 }
             }
         }
