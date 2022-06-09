@@ -20,6 +20,8 @@ import com.dikoresearchsuspensioncontroller.feature_controller.presentation.scan
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.settingsscreen.SettingsScreen
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.startscreen.StartScreen
 import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.ChartScreen
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.FloatScreen
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.SensorsFrame
 import com.dikoresearchsuspensioncontroller.ui.theme.SuspensionControllerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,16 +51,27 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
 
-                NavHost(navController = navController, startDestination = "chartscreen"){
+                NavHost(navController = navController, startDestination = "floatscreen"){
                     composable("startscreen"){ StartScreen(navController = navController)}
                     composable("scanscreen"){ScanScreen(navController = navController)}
                     composable("controlscreen"){ControlScreen(navController = navController)}
                     composable("settingsscreen"){ SettingsScreen(navController = navController)}
                     composable("chartscreen"){
-                        val dots = mutableListOf<Float>().apply {
-                            repeat(100) {add(Random.nextFloat()*100f)}
+                        val sensorsFrames = mutableListOf<SensorsFrame>().apply {
+                            repeat(1000) {
+                                add(
+                                    SensorsFrame(
+                                        timeStamp = it.toFloat(),
+                                        pressure1 = Random.nextFloat() * 100f,
+                                        pressure2 = Random.nextFloat() * 100f,
+                                    )
+                                )
+                            }
                         }
-                        ChartScreen(dots)
+                        ChartScreen(sensorsFrames)
+                    }
+                    composable("floatscreen"){
+                        FloatScreen()
                     }
                 }
             }

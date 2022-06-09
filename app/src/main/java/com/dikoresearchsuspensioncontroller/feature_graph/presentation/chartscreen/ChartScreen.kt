@@ -2,12 +2,15 @@ package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscr
 
 import android.graphics.Rect
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
@@ -21,7 +24,11 @@ import java.text.DecimalFormat
 import kotlin.random.Random
 
 @Composable
-fun ChartScreen(dots: List<Float>){
+fun ChartScreen(sensorsFrames: List<SensorsFrame>){
+
+    val state = rememberSaveable(saver = SensorsChartState.Saver) {
+        SensorsChartState.getState(sensorsFrames)
+    }
 
     val decimalFormat = DecimalFormat("##.00")
     val textPaint = Paint().asFrameworkPaint().apply {
@@ -31,122 +38,119 @@ fun ChartScreen(dots: List<Float>){
     }
     val bounds = Rect()
 
+
     Column(modifier = Modifier.fillMaxSize()) {
         Canvas(
-            modifier = Modifier.fillMaxWidth().height(200.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+                .transformable(state.transformableState)
+                .scrollable(state.scrollableState, orientation = Orientation.Horizontal)
         ){
-            val maxDot = dots.maxOrNull() ?: 0f
-            val minDot = dots.minOrNull() ?: 0f
+            val chartXStartOffset = 128.dp.value
+            val chartWidth = size.width - chartXStartOffset
+            val chartHeight = size.height - 64.dp.value
 
-            val yLines = derivedStateOf {
-                val yLineStep = (maxDot - minDot) / 10f
-                mutableListOf<Float>().apply {
-                    repeat(10) { if (it > 0) add (maxDot - yLineStep * it)}
-                }
-            }
-
-            val xLines = derivedStateOf {
-                val xLineStep = 100f / 10f
-                mutableListOf<Float>().apply {
-                    repeat(10) {  add (xLineStep * it)}
-                }
-            }
-
-            val startXOffset = 128.dp.value
-
-            val totalDots = dots.size
-            val chartWidth = size.width - 10.dp.value - startXOffset
-            val chartHeight = size.height - 10.dp.value
-            val lineDistance = chartWidth / (totalDots + 1)
+            state.setViewSize(width = chartWidth, height = chartHeight)
+            state.calculateGridWidth()
 
 
+            //Horizontal Axes
             drawLine(
                 color = Color.Black,
-                strokeWidth = 2.dp.value,
-                start = Offset(startXOffset, chartHeight),
-                end = Offset(chartWidth+startXOffset, chartHeight),
+                strokeWidth = 6.dp.value,
+                start = Offset(chartXStartOffset, chartHeight),
+                end = Offset(chartWidth + chartXStartOffset, chartHeight),
             )
 
-            drawLine(
-                color = Color.Black,
-                strokeWidth = 2.dp.value,
-                start = Offset(startXOffset, 0f),
-                end = Offset(startXOffset, chartHeight),
-            )
-
-            var currentLineDistance = startXOffset
-
-            yLines.value.forEach{ value ->
-                val yOffset = chartHeight * (maxDot - value) / (maxDot - minDot)
+            //Pressure Lines
+            state.pressureLines.value.forEachIndexed{index, value ->
+                val yOffset = state.yOffset(value)
                 val text = decimalFormat.format(value)
-                drawLine(
-                    color = Color.Red,
-                    pathEffect = PathEffect.dashPathEffect(intervals = floatArrayOf(10f, 20f), phase = 5f),
-                    start = Offset(startXOffset, yOffset),
-                    end = Offset(chartWidth+startXOffset, yOffset)
-                )
+
+                if (index != state.pressureLines.value.size-1){
+                    drawLine(
+                        color = Color.Red,
+                        strokeWidth = 4.dp.value,
+                        start = Offset(chartXStartOffset, yOffset),
+                        end = Offset(chartXStartOffset + chartWidth, yOffset),
+                        pathEffect = PathEffect.dashPathEffect(intervals = floatArrayOf(10f, 20f), phase = 5f)
+                    )
+                }
+
+
                 drawIntoCanvas {
                     textPaint.getTextBounds(text, 0, text.length, bounds)
                     val textHeight = bounds.height()
+                    val textWidth = bounds.width()
                     it.nativeCanvas.drawText(
                         text,
-                        8.dp.value,
+                        chartXStartOffset - textWidth - 8.dp.value,
                         yOffset + textHeight / 2,
                         textPaint
                     )
                 }
             }
 
-            xLines.value.forEach{ value ->
-                val xOffset = startXOffset + chartWidth * value / 100f
-                val text = decimalFormat.format(value)
+            //Vertical Axes
+            drawLine(
+                color = Color.Black,
+                strokeWidth = 6.dp.value,
+                start = Offset(chartXStartOffset, 0f),
+                end = Offset(chartXStartOffset, chartHeight),
+            )
+
+            //TimeLines
+            state.timeLines.value.forEach{ frame ->
+                val offset = state.xOffset(frame)
+                if (offset !in 0f..chartWidth) return@forEach
+                val text = decimalFormat.format(frame.timeStamp)
+
                 drawLine(
                     color = Color.Green,
-                    pathEffect = PathEffect.dashPathEffect(intervals = floatArrayOf(10f, 20f), phase = 5f),
-                    start = Offset(xOffset, 0f),
-                    end = Offset(xOffset, chartHeight)
+                    strokeWidth = 10.dp.value,
+                    start = Offset(chartXStartOffset+offset, 0f),
+                    end = Offset(chartXStartOffset+offset, chartHeight),
+                    pathEffect = PathEffect.dashPathEffect(intervals = floatArrayOf(10f, 20f), phase = 5f)
                 )
+
                 drawIntoCanvas {
                     textPaint.getTextBounds(text, 0, text.length, bounds)
-                    val textWidth = bounds.width()
                     val textHeight = bounds.height()
+                    val textWidth = bounds.width()
                     it.nativeCanvas.drawText(
                         text,
-                        xOffset - textWidth/2,
-                        textHeight + chartHeight + 2.dp.value,
+                        chartXStartOffset + offset - textWidth/2,
+                        chartHeight + 8.dp.value + textHeight,
                         textPaint
                     )
                 }
             }
 
-            dots.forEachIndexed{index, dot ->
-                if (totalDots >= index + 2){
+            state.visibleSensorsFrames.value.forEachIndexed{index, sensorFrame ->
+                val xOffset1 = state.xOffset(sensorFrame)
+                val yOffset1 = state.yOffset(sensorFrame.pressure1)
+                if (index < state.visibleSensorsFrames.value.size - 1){
+
+                    val xOffset2 = state.xOffset(state.visibleSensorsFrames.value[index+1])
+                    val yOffset2 = state.yOffset(state.visibleSensorsFrames.value[index+1].pressure1)
+
                     drawLine(
                         color = Color.Blue,
-                        strokeWidth = Stroke.DefaultMiter,
-                        start = Offset(
-                            x = currentLineDistance,
-                            y = chartHeight - dot / 100f * chartHeight
-                        ),
-                        end = Offset(
-                            x = currentLineDistance + lineDistance,
-                            y = chartHeight - dots[index+1] / 100f * chartHeight
-                        )
+                        strokeWidth = 2.dp.value,
+                        start = Offset(chartXStartOffset + xOffset1, yOffset1),
+                        end = Offset(chartXStartOffset + xOffset2, yOffset2),
                     )
                 }
-                currentLineDistance += lineDistance
+                drawCircle(
+                    color = Color.Red,
+                    radius = 6.dp.value,
+                    center = Offset(chartXStartOffset + xOffset1, yOffset1)
+                )
             }
+
         }
     }
-
 }
 
-@Preview(device = Devices.PIXEL_2)
-@Composable
-fun ChartScreenPreview(){
-    val dots = mutableListOf<Float>().apply {
-        repeat(100) {add(Random.nextFloat()*100f)}
-    }
-    ChartScreen(dots)
-}
 
