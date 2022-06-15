@@ -3,5 +3,7 @@ package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscr
 data class SensorsFrame(
     val timeStamp: Float,
     val pressure1: Float,
-    val pressure2: Float
+    val pressure2: Float,
+    val pressure3: Float,
+    val pressure4: Float
 )
