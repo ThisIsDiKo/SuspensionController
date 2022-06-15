@@ -36,8 +36,18 @@ class ChartState(
     private val visibleMinTime = mutableStateOf(0f)
     private val mainDivisionXAxes = mutableStateOf(1000f)
 
+    private val isZoomed = mutableStateOf(false)
+
     private val visibleMaxTime = derivedStateOf {
-        visibleMinTime.value + 10 * mainDivisionXAxes.value.roundToTens()
+        if (isZoomed.value){
+            visibleMinTime.value + 10 * mainDivisionXAxes.value.roundToTens()
+        }
+        else {
+            visibleMinTime.value = 0f
+            mainDivisionXAxes.value = sensorsFrames[sensorsFrames.size-1].timeStamp / 10f
+            visibleMinTime.value + 10 * mainDivisionXAxes.value.roundToTens()
+        }
+
     }
 
     private var generatorJob: Job? = null
@@ -45,6 +55,7 @@ class ChartState(
 
 
     val transformableState = TransformableState{ zoomChange, _, _ ->
+        isZoomed.value = true
         var newDivision = (mainDivisionXAxes.value / zoomChange).coerceAtLeast(10f)
         //Timber.d("New zoomChange $zoomChange and division $newDivision")
         //newDivision = ((newDivision.roundToInt() / 10) * 10).toFloat()
@@ -52,6 +63,7 @@ class ChartState(
     }
 
     val scrollableState = ScrollableState { scrollDelta ->
+        isZoomed.value = true
         val dT = scrollDelta / viewWidth * 10 * mainDivisionXAxes.value.roundToTens()
         visibleMinTime.value = if (scrollDelta > 0){
             (visibleMinTime.value - dT).coerceAtLeast(0f)
@@ -310,5 +322,9 @@ class ChartState(
             generatorJob?.cancel()
             generatorJob = null
         }
+    }
+
+    fun resetView(){
+        isZoomed.value = false
     }
 }

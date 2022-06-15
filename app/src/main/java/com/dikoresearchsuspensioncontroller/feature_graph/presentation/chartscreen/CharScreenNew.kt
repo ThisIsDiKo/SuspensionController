@@ -126,6 +126,13 @@ fun ChartScreenNew(){
             ) {
                 Text("Stop generator")
             }
+            Button(
+                onClick = {
+                    state.resetView()
+                }
+            ) {
+                Text("Reset View")
+            }
         }
         Canvas(
             modifier = Modifier
