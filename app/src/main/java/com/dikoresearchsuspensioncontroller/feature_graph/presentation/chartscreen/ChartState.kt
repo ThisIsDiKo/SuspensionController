@@ -1,5 +1,6 @@
 package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen
 
+import android.content.Context
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.runtime.derivedStateOf
@@ -7,6 +8,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.*
 import timber.log.Timber
+import java.io.File
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -24,10 +26,12 @@ class ChartState(
     private var viewWidth = 0f
     private var viewHeight = 0f
 
+    val showmV = mutableStateOf(false)
     val showPressure1 = mutableStateOf(true)
     val showPressure2 = mutableStateOf(true)
     val showPressure3 = mutableStateOf(true)
     val showPressure4 = mutableStateOf(true)
+
 
 
     var minTime = 0f
@@ -86,7 +90,21 @@ class ChartState(
 
             val tempFullLust = mutableListOf<SensorsFrame>()
             for (i in sensorsFrames.indices){
-                tempFullLust.add(sensorsFrames[i])
+                if (showmV.value){
+                    tempFullLust.add(sensorsFrames[i])
+                }
+                else {
+                    val k = 7.24f / 1000f
+                    val b = -2.46f
+
+                    val p1 = if (sensorsFrames[i].pressure1 >= 6.0f) k * sensorsFrames[i].pressure1 + b else 0.0f
+                    val p2 = if (sensorsFrames[i].pressure2 >= 6.0f) k * sensorsFrames[i].pressure2 + b else 0.0f
+                    val p3 = if (sensorsFrames[i].pressure3 >= 6.0f) k * sensorsFrames[i].pressure3 + b else 0.0f
+                    val p4 = if (sensorsFrames[i].pressure4 >= 6.0f) k * sensorsFrames[i].pressure4 + b else 0.0f
+
+                    tempFullLust.add(SensorsFrame(sensorsFrames[i].timeStamp, p1, p2, p3, p4))
+                }
+
             }
 
 //            val startIndex = sensorsFrames.indexOfFirst { it.timeStamp >= visibleMinTime.value }
@@ -94,11 +112,15 @@ class ChartState(
 //            if (startIndex < 0 || endIndex < 0){
 //                return@derivedStateOf emptyList<SensorsFrame>()
 //            }
-            val startIndex = tempFullLust.indexOfFirst { it.timeStamp >= visibleMinTime.value }
+
             val endIndex = tempFullLust.indexOfLast { it.timeStamp <= visibleMaxTime.value }
-            if ((startIndex < 0 || endIndex < 0) && startIndex > endIndex){
+            Timber.i("Calculating new visible indexes on min time ${visibleMinTime.value}")
+            val startIndex = tempFullLust.indexOfFirst { it.timeStamp >= visibleMinTime.value }
+            if (startIndex < 0 || endIndex < 0 || startIndex > endIndex){
                 return@derivedStateOf emptyList<SensorsFrame>()
             }
+
+            Timber.i("New visible frames: $startIndex to $endIndex on min time ${visibleMinTime.value}")
 
             val temp = tempFullLust.subList(
                 fromIndex = startIndex,
@@ -306,10 +328,10 @@ class ChartState(
             generatorJob = CoroutineScope(Dispatchers.IO).launch {
                 while(isActive){
                     val timeStamp = timeOffset + (System.currentTimeMillis() - startTime)
-                    val p1 = 5 + Random.nextFloat() * 5
-                    val p2 = 1 + Random.nextFloat() * 1
-                    val p3 = 8 + Random.nextFloat() * 2
-                    val p4 = 3 + Random.nextFloat() * 2
+                    val p1 = 1000 + Random.nextFloat() * 500
+                    val p2 = 1200 + Random.nextFloat() * 1000
+                    val p3 = 1500 + Random.nextFloat() * 500
+                    val p4 = 2000 + Random.nextFloat() * 100
                     sensorsFrames.add(SensorsFrame(timeStamp, p1, p2, p3, p4))
                     delay(100)
                 }
@@ -325,6 +347,18 @@ class ChartState(
     }
 
     fun resetView(){
+        Timber.i("Reset view clicked")
         isZoomed.value = false
+    }
+
+    fun saveData(context: Context){
+        //val fileDirectory = File(context.filesDir, "testGraph")
+        val file = File(context.filesDir, "testGraph.dks")
+        file.createNewFile()
+        Timber.i("Saving file to ${file.absoluteFile}")
+        for (frame in sensorsFrames){
+            val msg = "${frame.timeStamp},${frame.pressure1},${frame.pressure2}\n"
+            file.appendText(msg)
+        }
     }
 }
