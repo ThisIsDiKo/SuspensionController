@@ -1,6 +1,8 @@
-package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen
+package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.components
 
+import android.graphics.Path
 import android.graphics.Rect
+import android.graphics.RectF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
@@ -13,6 +15,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.ChartState
 
 @Composable
 fun ChartComponent(
@@ -35,7 +38,7 @@ fun ChartComponent(
     ){
         val xStartOffset = 128.dp.value
         val chartWidth = size.width - xStartOffset
-        val chartHeight = size.height - 64.dp.value
+        val chartHeight = size.height - 96.dp.value
 
         state.setViewSize(chartWidth, chartHeight)
 
@@ -67,10 +70,28 @@ fun ChartComponent(
                 textPaint.getTextBounds(text, 0, text.length, bounds)
                 val textHeight = bounds.height()
                 val textWidth = bounds.width()
-                it.nativeCanvas.drawText(
+                val path = Path()
+
+                path.moveTo(xStartOffset + offset - textHeight, chartHeight + 8.dp.value + textWidth)
+                path.lineTo(xStartOffset + offset, chartHeight + 8.dp.value)
+//                it.nativeCanvas.drawText(
+//                    text,
+//                    xStartOffset + offset - textWidth/2,
+//                    chartHeight + 8.dp.value + textHeight,
+//                    textPaint
+//                )
+//                it.nativeCanvas.drawTextOnPath(
+//                    text,
+//                    path,
+//                    xStartOffset + offset - textWidth/2,
+//                    chartHeight + 8.dp.value + textHeight,
+//                    textPaint
+//                )
+                it.nativeCanvas.drawTextOnPath(
                     text,
-                    xStartOffset + offset - textWidth/2,
-                    chartHeight + 8.dp.value + textHeight,
+                    path,
+                    0f,
+                    0f,
                     textPaint
                 )
             }
@@ -132,7 +153,7 @@ fun ChartComponent(
 
                 if (state.showPressure1.value){
                     drawLine(
-                        color = Color.Blue,
+                        color = Color.Red,
                         strokeWidth = 3.dp.value,
                         start = Offset(xFromOffset, yFromOffset1),
                         end = Offset(xToOffset, yToOffset1),
@@ -141,7 +162,7 @@ fun ChartComponent(
 
                 if (state.showPressure2.value){
                     drawLine(
-                        color = Color.Cyan,
+                        color = Color.Blue,
                         strokeWidth = 3.dp.value,
                         start = Offset(xFromOffset, yFromOffset2),
                         end = Offset(xToOffset, yToOffset2),
@@ -200,13 +221,18 @@ fun ChartComponent(
                 )
             }
         }
-    }
 
-//    BoxWithConstraints(
-//        modifier = Modifier
-//            .padding(8.dp)
-//    ) {
-//        val boxWithConstraintsScope = this
-//
-//    }
+        drawIntoCanvas {
+            val text = "t,msec"
+            textPaint.getTextBounds(text, 0, text.length, bounds)
+            val textHeight = bounds.height()
+            val textWidth = bounds.width()
+            it.nativeCanvas.drawText(
+                text,
+                xStartOffset + chartWidth/2 - textWidth/2,
+                chartHeight + 80.dp.value,
+                textPaint
+            )
+        }
+    }
 }

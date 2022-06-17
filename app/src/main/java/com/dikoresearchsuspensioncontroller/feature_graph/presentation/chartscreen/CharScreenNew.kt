@@ -1,36 +1,27 @@
 package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen
 
 import android.content.res.Configuration
-import android.graphics.Rect
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.components.ChartComponent
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.components.ControlButtons
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.components.SourceSelectionBlock
+import kotlinx.coroutines.flow.collect
+import timber.log.Timber
 import kotlin.random.Random
 
 @Composable
 fun ChartScreenNew(){
     val configuration = LocalConfiguration.current
+    val localContext = LocalContext.current
     val state = remember {
         val startList = mutableListOf<SensorsFrame>()
         var prevTimeStamp = 0f
@@ -43,7 +34,7 @@ fun ChartScreenNew(){
             val p4 = 2000 + Random.nextFloat() * 100
             startList.add(SensorsFrame(timeStamp, p1, p2, p3, p4))
         }
-        ChartState(startList)
+        ChartState(startList, localContext)
     }
 
     val showPressure1 = remember { mutableStateOf(true)}
@@ -74,74 +65,49 @@ fun ChartScreenNew(){
                     verticalArrangement = Arrangement.SpaceAround,
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ){
+                    SourceSelectionBlock(
+                        showVoltageAlias = "mV",
+                        showSource1Alias = "1",
+                        showSource2Alias = "2",
+                        showSource3Alias = "3",
+                        showSource4Alias = "4",
+                        showSource5Alias = "5",
+                        showVoltage = showmV.value,
+                        showSource1 = showPressure1.value,
+                        showSource2 = showPressure2.value,
+                        showSource3 = showPressure3.value,
+                        showSource4 = showPressure4.value,
+                        showSource5 = true,
+                        showSource1Color = Color.Red,
+                        showSource2Color = Color.Blue,
+                        showSource3Color = Color.Green,
+                        showSource4Color = Color.Magenta,
+                        showSource5Color = Color.Yellow,
+                        onShowVoltageChanged = {
+                            state.showmV.value = it
+                            showmV.value = !showmV.value
+                            Timber.e("checkbox  clicked")
+                        },
+                        onShowSource1Changed = {
+                            state.showPressure1.value = it
+                            showPressure1.value = !showPressure1.value
+                        },
+                        onShowSource2Changed = {
+                            state.showPressure2.value = it
+                            showPressure2.value = !showPressure2.value
+                        },
+                        onShowSource3Changed = {
+                            state.showPressure3.value = it
+                            showPressure3.value = !showPressure3.value
+                        },
+                        onShowSource4Changed = {
+                            state.showPressure4.value = it
+                            showPressure4.value = !showPressure4.value
+                        },
+                        onShowSource5Changed = {
 
-                        Checkbox(
-                            checked = showmV.value,
-                            onCheckedChange = {
-                                state.showmV.value = it
-                                showmV.value = !showmV.value
-                            }
-                        )
-                        Text("Use mV")
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ){
-                        Checkbox(
-                            checked = showPressure1.value,
-                            onCheckedChange = {
-                                state.showPressure1.value = it
-                                showPressure1.value = !showPressure1.value
-                            }
-                        )
-                        Text("1")
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ){
-                        Checkbox(
-                            checked = showPressure2.value,
-                            onCheckedChange = {
-                                state.showPressure2.value = it
-                                showPressure2.value = !showPressure2.value
-                            }
-                        )
-                        Text("2")
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ){
-                        Checkbox(
-                            checked = showPressure3.value,
-                            onCheckedChange = {
-                                state.showPressure3.value = it
-                                showPressure3.value = !showPressure3.value
-                            }
-                        )
-                        Text("3")
-
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ){
-                        Checkbox(
-                            checked = showPressure4.value,
-                            onCheckedChange = {
-                                state.showPressure4.value = it
-                                showPressure4.value = !showPressure4.value
-                            }
-                        )
-                        Text("4")
-
-                    }
+                        }
+                    )
                 }
                 Column(
                     modifier = Modifier
@@ -150,7 +116,14 @@ fun ChartScreenNew(){
                     verticalArrangement = Arrangement.SpaceAround,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    ControlButtons(state = state)
+                    ControlButtons(
+                        isScanning = state.isScanning.value,
+                        isZoomed = state.isZoomed.value,
+                        startScan = state::startGenerator,
+                        stopScan = state::stopGenerator,
+                        resetView = { state.resetView() },
+                        saveToDisk = state::saveData
+                    )
                 }
             }
         }
@@ -175,74 +148,49 @@ fun ChartScreenNew(){
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ){
+                    SourceSelectionBlock(
+                        showVoltageAlias = "mV",
+                        showSource1Alias = "1",
+                        showSource2Alias = "2",
+                        showSource3Alias = "3",
+                        showSource4Alias = "4",
+                        showSource5Alias = "5",
+                        showVoltage = showmV.value,
+                        showSource1 = showPressure1.value,
+                        showSource2 = showPressure2.value,
+                        showSource3 = showPressure3.value,
+                        showSource4 = showPressure4.value,
+                        showSource5 = true,
+                        showSource1Color = Color.Red,
+                        showSource2Color = Color.Blue,
+                        showSource3Color = Color.Green,
+                        showSource4Color = Color.Magenta,
+                        showSource5Color = Color.Yellow,
+                        onShowVoltageChanged = {
+                            state.showmV.value = it
+                            showmV.value = !showmV.value
+                            Timber.e("checkbox  clicked")
+                        },
+                        onShowSource1Changed = {
+                            state.showPressure1.value = it
+                            showPressure1.value = !showPressure1.value
+                        },
+                        onShowSource2Changed = {
+                            state.showPressure2.value = it
+                            showPressure2.value = !showPressure2.value
+                        },
+                        onShowSource3Changed = {
+                            state.showPressure3.value = it
+                            showPressure3.value = !showPressure3.value
+                        },
+                        onShowSource4Changed = {
+                            state.showPressure4.value = it
+                            showPressure4.value = !showPressure4.value
+                        },
+                        onShowSource5Changed = {
 
-                        Checkbox(
-                            checked = showmV.value,
-                            onCheckedChange = {
-                                state.showmV.value = it
-                                showmV.value = !showmV.value
-                            }
-                        )
-                        Text("Use mV")
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ){
-                        Checkbox(
-                            checked = showPressure1.value,
-                            onCheckedChange = {
-                                state.showPressure1.value = it
-                                showPressure1.value = !showPressure1.value
-                            }
-                        )
-                        Text("1")
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ){
-                        Checkbox(
-                            checked = showPressure2.value,
-                            onCheckedChange = {
-                                state.showPressure2.value = it
-                                showPressure2.value = !showPressure2.value
-                            }
-                        )
-                        Text("2")
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ){
-                        Checkbox(
-                            checked = showPressure3.value,
-                            onCheckedChange = {
-                                state.showPressure3.value = it
-                                showPressure3.value = !showPressure3.value
-                            }
-                        )
-                        Text("3")
-
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ){
-                        Checkbox(
-                            checked = showPressure4.value,
-                            onCheckedChange = {
-                                state.showPressure4.value = it
-                                showPressure4.value = !showPressure4.value
-                            }
-                        )
-                        Text("4")
-
-                    }
+                        }
+                    )
                 }
 
                 Row(
@@ -252,11 +200,17 @@ fun ChartScreenNew(){
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceAround
                 ){
-                    ControlButtons(state = state)
+                    ControlButtons(
+                        isScanning = state.isScanning.value,
+                        isZoomed = state.isZoomed.value,
+                        startScan = state::startGenerator,
+                        stopScan = state::stopGenerator,
+                        resetView = { state.resetView() },
+                        saveToDisk = state::saveData
+                    )
                 }
             }
         }
     }
-
-
 }
+

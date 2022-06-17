@@ -1,6 +1,7 @@
 package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen
 
 import android.content.Context
+import android.os.Environment
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.runtime.derivedStateOf
@@ -14,12 +15,15 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class ChartState(
-    startFrames: List<SensorsFrame>
+    startFrames: List<SensorsFrame>,
+    context: Context
 ) {
 
     private val sensorsFrames = mutableStateListOf<SensorsFrame>().apply {
         addAll(startFrames)
     }
+
+    private val context = context
 
     //val visibleSensorsFrame = mutableStateListOf<SensorsFrame>()
 
@@ -31,6 +35,7 @@ class ChartState(
     val showPressure2 = mutableStateOf(true)
     val showPressure3 = mutableStateOf(true)
     val showPressure4 = mutableStateOf(true)
+    val isScanning = mutableStateOf(false)
 
 
 
@@ -40,7 +45,7 @@ class ChartState(
     private val visibleMinTime = mutableStateOf(0f)
     private val mainDivisionXAxes = mutableStateOf(1000f)
 
-    private val isZoomed = mutableStateOf(false)
+    val isZoomed = mutableStateOf(false)
 
     private val visibleMaxTime = derivedStateOf {
         if (isZoomed.value){
@@ -114,13 +119,10 @@ class ChartState(
 //            }
 
             val endIndex = tempFullLust.indexOfLast { it.timeStamp <= visibleMaxTime.value }
-            Timber.i("Calculating new visible indexes on min time ${visibleMinTime.value}")
             val startIndex = tempFullLust.indexOfFirst { it.timeStamp >= visibleMinTime.value }
             if (startIndex < 0 || endIndex < 0 || startIndex > endIndex){
                 return@derivedStateOf emptyList<SensorsFrame>()
             }
-
-            Timber.i("New visible frames: $startIndex to $endIndex on min time ${visibleMinTime.value}")
 
             val temp = tempFullLust.subList(
                 fromIndex = startIndex,
@@ -171,15 +173,6 @@ class ChartState(
                 }
                 if (it.last().timeStamp < visibleMaxTime.value){
                     if (endIndex < tempFullLust.size - 1){
-//                        val b = sensorsFrames[endIndex + 1]
-//                        val a = sensorsFrames[endIndex]
-//
-//                        var k = (b.pressure1 - a.pressure1) / (b.timeStamp - a.timeStamp)
-//                        var s = a.pressure1 - k * a.timeStamp
-//
-//                        val t = visibleMaxTime.value
-//                        val p1 = k * t + s
-//                        it.add(SensorsFrame(t, p1, 0f, 0f, 0f))
                         val t = visibleMaxTime.value
                         val p1 = calculateApprox(
                             fromX = tempFullLust[endIndex].timeStamp,
@@ -337,6 +330,7 @@ class ChartState(
                 }
             }
         }
+        isScanning.value = true
     }
 
     fun stopGenerator(){
@@ -344,6 +338,7 @@ class ChartState(
             generatorJob?.cancel()
             generatorJob = null
         }
+        isScanning.value = false
     }
 
     fun resetView(){
@@ -351,14 +346,16 @@ class ChartState(
         isZoomed.value = false
     }
 
-    fun saveData(context: Context){
-        //val fileDirectory = File(context.filesDir, "testGraph")
-        val file = File(context.filesDir, "testGraph.dks")
+    fun saveData(){
+        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "testGraph.txt")
+
         file.createNewFile()
         Timber.i("Saving file to ${file.absoluteFile}")
+        var msg = "timestamp,pressure1,pressure2\n"
         for (frame in sensorsFrames){
-            val msg = "${frame.timeStamp},${frame.pressure1},${frame.pressure2}\n"
-            file.appendText(msg)
+            msg += "${frame.timeStamp},${frame.pressure1},${frame.pressure2}\n"
+
         }
+        file.writeText(msg)
     }
 }

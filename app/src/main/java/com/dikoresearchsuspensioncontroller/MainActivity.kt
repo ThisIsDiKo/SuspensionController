@@ -19,10 +19,7 @@ import com.dikoresearchsuspensioncontroller.feature_controller.presentation.cont
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.scanscreen.ScanScreen
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.settingsscreen.SettingsScreen
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.startscreen.StartScreen
-import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.ChartScreen
-import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.ChartScreenNew
-import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.FloatScreen
-import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.SensorsFrame
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.*
 import com.dikoresearchsuspensioncontroller.ui.theme.SuspensionControllerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,9 +31,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (BuildConfig.DEBUG){
-            Timber.plant(Timber.DebugTree())
-        }
 
         setContent {
             SuspensionControllerTheme {
@@ -62,6 +56,9 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("floatscreen"){
                         FloatScreen()
+                    }
+                    composable("simplescreen"){
+                        SimpleScreen()
                     }
                 }
             }
