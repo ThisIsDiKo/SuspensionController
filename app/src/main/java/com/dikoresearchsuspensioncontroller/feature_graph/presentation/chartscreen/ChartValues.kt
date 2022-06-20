@@ -1,7 +1,6 @@
 package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen
 
-class SensorsFrame(
+class ChartValues(
     val timeStamp: Float,
-    val pressureValues: Array<Float>,
-    val rawValues: Array<Float>,
+    val valuesToShow: Array<Float>
 )

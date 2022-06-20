@@ -124,14 +124,14 @@ fun ControlScreen(
 
                 },
                 actions = {
-//                    IconButton(onClick = {
-//                        Timber.i("Go to graph clicked")
-//                    }) {
-//                        Icon(
-//                            painter = painterResource(id = R.drawable.ic_baseline_show_chart_36),
-//                            contentDescription = "")
-//                    }
-//                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = {
+                        navController.navigate("chartscreen")
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_baseline_show_chart_36),
+                            contentDescription = "")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                     IconButton(onClick = {
                         navController.navigate("settingsscreen")
                     }) {

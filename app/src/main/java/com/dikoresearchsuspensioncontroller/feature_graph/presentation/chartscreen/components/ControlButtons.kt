@@ -38,7 +38,6 @@ fun ControlButtons(
 
     IconButton(
         onClick = {
-            Timber.e("zoomed out button clicked")
             resetView()
         },
         enabled = isZoomed
@@ -48,7 +47,6 @@ fun ControlButtons(
 
     IconButton(
         onClick = {
-            Timber.e("save button clicked")
             saveToDisk()
         },
         enabled = !isScanning

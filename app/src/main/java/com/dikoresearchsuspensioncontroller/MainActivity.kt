@@ -52,10 +52,7 @@ class MainActivity : ComponentActivity() {
                     composable("controlscreen"){ControlScreen(navController = navController)}
                     composable("settingsscreen"){ SettingsScreen(navController = navController)}
                     composable("chartscreen"){
-                        ChartScreenNew()
-                    }
-                    composable("floatscreen"){
-                        FloatScreen()
+                        ChartScreenNew(navController = navController)
                     }
                     composable("simplescreen"){
                         SimpleScreen()

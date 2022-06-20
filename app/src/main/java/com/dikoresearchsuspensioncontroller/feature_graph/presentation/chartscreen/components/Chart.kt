@@ -74,19 +74,7 @@ fun ChartComponent(
 
                 path.moveTo(xStartOffset + offset - textHeight, chartHeight + 8.dp.value + textWidth)
                 path.lineTo(xStartOffset + offset, chartHeight + 8.dp.value)
-//                it.nativeCanvas.drawText(
-//                    text,
-//                    xStartOffset + offset - textWidth/2,
-//                    chartHeight + 8.dp.value + textHeight,
-//                    textPaint
-//                )
-//                it.nativeCanvas.drawTextOnPath(
-//                    text,
-//                    path,
-//                    xStartOffset + offset - textWidth/2,
-//                    chartHeight + 8.dp.value + textHeight,
-//                    textPaint
-//                )
+
                 it.nativeCanvas.drawTextOnPath(
                     text,
                     path,
@@ -109,7 +97,7 @@ fun ChartComponent(
         //main division y axes
         state.yDivisionLines.value.forEachIndexed{ index, value ->
             val step = chartHeight / 10f
-            val text = String.format("%.2f", value) //TODO switch to float mode
+            val text = String.format("%.2f", value)
             val offset = (10 - index) * step
 
             if (index != 0){
@@ -138,20 +126,22 @@ fun ChartComponent(
         //Pressure lines
         state.visibleSensorsFrames.value.forEachIndexed { index, sensorsFrame ->
             val xFromOffset = xStartOffset + state.xOffset(sensorsFrame)
-            val yFromOffset1 = state.yOffset(sensorsFrame.pressure1)
-            val yFromOffset2 = state.yOffset(sensorsFrame.pressure2)
-            val yFromOffset3 = state.yOffset(sensorsFrame.pressure3)
-            val yFromOffset4 = state.yOffset(sensorsFrame.pressure4)
+            val yFromOffset1 = state.yOffset(sensorsFrame.valuesToShow[0])
+            val yFromOffset2 = state.yOffset(sensorsFrame.valuesToShow[1])
+            val yFromOffset3 = state.yOffset(sensorsFrame.valuesToShow[2])
+            val yFromOffset4 = state.yOffset(sensorsFrame.valuesToShow[3])
+            val yFromOffset5 = state.yOffset(sensorsFrame.valuesToShow[4])
 
             if (index < state.visibleSensorsFrames.value.size - 1){
 
                 val xToOffset = xStartOffset + state.xOffset(state.visibleSensorsFrames.value[index+1])
-                val yToOffset1 = state.yOffset(state.visibleSensorsFrames.value[index+1].pressure1)
-                val yToOffset2 = state.yOffset(state.visibleSensorsFrames.value[index+1].pressure2)
-                val yToOffset3 = state.yOffset(state.visibleSensorsFrames.value[index+1].pressure3)
-                val yToOffset4 = state.yOffset(state.visibleSensorsFrames.value[index+1].pressure4)
+                val yToOffset1 = state.yOffset(state.visibleSensorsFrames.value[index+1].valuesToShow[0])
+                val yToOffset2 = state.yOffset(state.visibleSensorsFrames.value[index+1].valuesToShow[1])
+                val yToOffset3 = state.yOffset(state.visibleSensorsFrames.value[index+1].valuesToShow[2])
+                val yToOffset4 = state.yOffset(state.visibleSensorsFrames.value[index+1].valuesToShow[3])
+                val yToOffset5= state.yOffset(state.visibleSensorsFrames.value[index+1].valuesToShow[4])
 
-                if (state.showPressure1.value){
+                if (state.showSensor1.value){
                     drawLine(
                         color = Color.Red,
                         strokeWidth = 3.dp.value,
@@ -160,7 +150,7 @@ fun ChartComponent(
                     )
                 }
 
-                if (state.showPressure2.value){
+                if (state.showSensor2.value){
                     drawLine(
                         color = Color.Blue,
                         strokeWidth = 3.dp.value,
@@ -169,7 +159,7 @@ fun ChartComponent(
                     )
                 }
 
-                if (state.showPressure3.value){
+                if (state.showSensor3.value){
                     drawLine(
                         color = Color.Green,
                         strokeWidth = 3.dp.value,
@@ -178,7 +168,7 @@ fun ChartComponent(
                     )
                 }
 
-                if (state.showPressure4.value){
+                if (state.showSensor4.value){
                     drawLine(
                         color = Color.Magenta,
                         strokeWidth = 3.dp.value,
@@ -187,25 +177,34 @@ fun ChartComponent(
                     )
                 }
 
+                if (state.showSensor5.value){
+                    drawLine(
+                        color = Color.Yellow,
+                        strokeWidth = 3.dp.value,
+                        start = Offset(xFromOffset, yFromOffset5),
+                        end = Offset(xToOffset, yToOffset5),
+                    )
+                }
+
             }
 
-            if (state.showPressure1.value){
+            if (state.showSensor1.value){
                 drawCircle(
-                    color = Color.Blue,
+                    color = Color.Red,
                     radius = 6.dp.value,
                     center = Offset(xFromOffset, yFromOffset1)
                 )
             }
 
-            if (state.showPressure2.value){
+            if (state.showSensor2.value){
                 drawCircle(
-                    color = Color.Cyan,
+                    color = Color.Blue,
                     radius = 6.dp.value,
                     center = Offset(xFromOffset, yFromOffset2)
                 )
             }
 
-            if (state.showPressure3.value){
+            if (state.showSensor3.value){
                 drawCircle(
                     color = Color.Green,
                     radius = 6.dp.value,
@@ -213,9 +212,17 @@ fun ChartComponent(
                 )
             }
 
-            if (state.showPressure4.value){
+            if (state.showSensor4.value){
                 drawCircle(
                     color = Color.Magenta,
+                    radius = 6.dp.value,
+                    center = Offset(xFromOffset, yFromOffset4)
+                )
+            }
+
+            if (state.showSensor5.value){
+                drawCircle(
+                    color = Color.Yellow,
                     radius = 6.dp.value,
                     center = Offset(xFromOffset, yFromOffset4)
                 )

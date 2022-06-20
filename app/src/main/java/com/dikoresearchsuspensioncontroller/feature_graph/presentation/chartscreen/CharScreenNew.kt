@@ -4,210 +4,233 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.components.ChartComponent
-import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.components.ControlButtons
-import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.components.SourceSelectionBlock
-import kotlinx.coroutines.flow.collect
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.components.*
+import kotlinx.coroutines.flow.collectLatest
 import timber.log.Timber
-import kotlin.random.Random
 
 @Composable
-fun ChartScreenNew(){
+fun ChartScreenNew(
+    navController: NavController,
+    viewModel: ChartScreenViewModel = hiltViewModel()
+){
+    val scaffoldState = rememberScaffoldState()
     val configuration = LocalConfiguration.current
-    val localContext = LocalContext.current
-    val state = remember {
-        val startList = mutableListOf<SensorsFrame>()
-        var prevTimeStamp = 0f
-        for(i in 0..100){
-            val timeStamp = prevTimeStamp
-            prevTimeStamp += Random.nextInt(2, 100)
-            val p1 = 1000 + Random.nextFloat() * 500
-            val p2 = 1200 + Random.nextFloat() * 1000
-            val p3 = 1500 + Random.nextFloat() * 500
-            val p4 = 2000 + Random.nextFloat() * 100
-            startList.add(SensorsFrame(timeStamp, p1, p2, p3, p4))
-        }
-        ChartState(startList, localContext)
-    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val state = viewModel.chartState
 
-    val showPressure1 = remember { mutableStateOf(true)}
-    val showPressure2 = remember { mutableStateOf(true)}
-    val showPressure3 = remember { mutableStateOf(true)}
-    val showPressure4= remember { mutableStateOf(true)}
-    val showmV= remember { mutableStateOf(false)}
-
-
-
-    when (configuration.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                ChartComponent(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    state = state
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(10.dp, 5.dp, 10.dp, 5.dp),
-                    verticalArrangement = Arrangement.SpaceAround,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    SourceSelectionBlock(
-                        showVoltageAlias = "mV",
-                        showSource1Alias = "1",
-                        showSource2Alias = "2",
-                        showSource3Alias = "3",
-                        showSource4Alias = "4",
-                        showSource5Alias = "5",
-                        showVoltage = showmV.value,
-                        showSource1 = showPressure1.value,
-                        showSource2 = showPressure2.value,
-                        showSource3 = showPressure3.value,
-                        showSource4 = showPressure4.value,
-                        showSource5 = true,
-                        showSource1Color = Color.Red,
-                        showSource2Color = Color.Blue,
-                        showSource3Color = Color.Green,
-                        showSource4Color = Color.Magenta,
-                        showSource5Color = Color.Yellow,
-                        onShowVoltageChanged = {
-                            state.showmV.value = it
-                            showmV.value = !showmV.value
-                            Timber.e("checkbox  clicked")
-                        },
-                        onShowSource1Changed = {
-                            state.showPressure1.value = it
-                            showPressure1.value = !showPressure1.value
-                        },
-                        onShowSource2Changed = {
-                            state.showPressure2.value = it
-                            showPressure2.value = !showPressure2.value
-                        },
-                        onShowSource3Changed = {
-                            state.showPressure3.value = it
-                            showPressure3.value = !showPressure3.value
-                        },
-                        onShowSource4Changed = {
-                            state.showPressure4.value = it
-                            showPressure4.value = !showPressure4.value
-                        },
-                        onShowSource5Changed = {
-
-                        }
+    LaunchedEffect(key1 = true){
+        viewModel.eventFlow.collectLatest { event ->
+            when(event){
+                is UiChartScreenEvents.ShowSnackbar -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
                     )
                 }
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(10.dp, 5.dp, 10.dp, 5.dp),
-                    verticalArrangement = Arrangement.SpaceAround,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    ControlButtons(
-                        isScanning = state.isScanning.value,
-                        isZoomed = state.isZoomed.value,
-                        startScan = state::startGenerator,
-                        stopScan = state::stopGenerator,
-                        resetView = { state.resetView() },
-                        saveToDisk = state::saveData
-                    )
-                }
+                else -> {}
             }
         }
-        else -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                ChartComponent(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    state = state
-                )
+    }
 
-                Spacer(modifier = Modifier.height(20.dp))
+    DisposableEffect(
+        key1 = lifecycleOwner,
+        effect = {
+            val observer = LifecycleEventObserver{ _, event ->
+                if (event == Lifecycle.Event.ON_RESUME){
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp, 5.dp, 10.dp, 5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    SourceSelectionBlock(
-                        showVoltageAlias = "mV",
-                        showSource1Alias = "1",
-                        showSource2Alias = "2",
-                        showSource3Alias = "3",
-                        showSource4Alias = "4",
-                        showSource5Alias = "5",
-                        showVoltage = showmV.value,
-                        showSource1 = showPressure1.value,
-                        showSource2 = showPressure2.value,
-                        showSource3 = showPressure3.value,
-                        showSource4 = showPressure4.value,
-                        showSource5 = true,
-                        showSource1Color = Color.Red,
-                        showSource2Color = Color.Blue,
-                        showSource3Color = Color.Green,
-                        showSource4Color = Color.Magenta,
-                        showSource5Color = Color.Yellow,
-                        onShowVoltageChanged = {
-                            state.showmV.value = it
-                            showmV.value = !showmV.value
-                            Timber.e("checkbox  clicked")
-                        },
-                        onShowSource1Changed = {
-                            state.showPressure1.value = it
-                            showPressure1.value = !showPressure1.value
-                        },
-                        onShowSource2Changed = {
-                            state.showPressure2.value = it
-                            showPressure2.value = !showPressure2.value
-                        },
-                        onShowSource3Changed = {
-                            state.showPressure3.value = it
-                            showPressure3.value = !showPressure3.value
-                        },
-                        onShowSource4Changed = {
-                            state.showPressure4.value = it
-                            showPressure4.value = !showPressure4.value
-                        },
-                        onShowSource5Changed = {
-
-                        }
-                    )
                 }
+                else if (event == Lifecycle.Event.ON_STOP){
+                    Timber.i("Chart screen stopped")
+                }
+                else if (event == Lifecycle.Event.ON_PAUSE){
+                    Timber.i("Chart screen paused")
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        }
+    )
 
+    Scaffold(
+        scaffoldState = scaffoldState,
+    ){ paddingValues ->
+
+        FileNameDialog(
+            enabled = viewModel.showFileNameDialog.value,
+            onDismissRequest = {viewModel.hideFileNameDialog()},
+            onAccept = {viewModel.saveFile(it)}
+        )
+
+        SaveProgressDialog(
+            enabled = viewModel.isSavingFile.value
+        )
+
+        when (configuration.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
+                    modifier = Modifier.fillMaxSize()
+                        .padding(paddingValues),
+                    verticalAlignment = Alignment.CenterVertically
                 ){
-                    ControlButtons(
-                        isScanning = state.isScanning.value,
-                        isZoomed = state.isZoomed.value,
-                        startScan = state::startGenerator,
-                        stopScan = state::stopGenerator,
-                        resetView = { state.resetView() },
-                        saveToDisk = state::saveData
+                    ChartComponent(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        state = state
                     )
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(10.dp, 5.dp, 10.dp, 5.dp),
+                        verticalArrangement = Arrangement.SpaceAround,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        SourceSelectionBlock(
+                            showVoltageAlias = "mV",
+                            showSource1Alias = "1",
+                            showSource2Alias = "2",
+                            showSource3Alias = "3",
+                            showSource4Alias = "4",
+                            showSource5Alias = "5",
+                            showVoltage = viewModel.showRawSensors.value,
+                            showSource1 = viewModel.showSensor1.value,
+                            showSource2 = viewModel.showSensor2.value,
+                            showSource3 = viewModel.showSensor3.value,
+                            showSource4 = viewModel.showSensor4.value,
+                            showSource5 = viewModel.showSensor5.value,
+                            showSource1Color = Color.Red,
+                            showSource2Color = Color.Blue,
+                            showSource3Color = Color.Green,
+                            showSource4Color = Color.Magenta,
+                            showSource5Color = Color.Yellow,
+                            onShowVoltageChanged = {
+                                viewModel.showRawSensors.value = !viewModel.showRawSensors.value
+                            },
+                            onShowSource1Changed = {
+                                viewModel.showSensor1.value = !viewModel.showSensor1.value
+                            },
+                            onShowSource2Changed = {
+                                viewModel.showSensor2.value = !viewModel.showSensor2.value
+                            },
+                            onShowSource3Changed = {
+                                viewModel.showSensor3.value = !viewModel.showSensor3.value
+                            },
+                            onShowSource4Changed = {
+                                viewModel.showSensor4.value = !viewModel.showSensor4.value
+                            },
+                            onShowSource5Changed = {
+                                viewModel.showSensor5.value = !viewModel.showSensor5.value
+                            }
+                        )
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(10.dp, 5.dp, 10.dp, 5.dp),
+                        verticalArrangement = Arrangement.SpaceAround,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ControlButtons(
+                            isScanning = viewModel.isScanning.value,
+                            isZoomed = state.isZoomed.value,
+                            startScan = viewModel::startDataRecording,
+                            stopScan = viewModel::stopDataRecording,
+                            resetView = viewModel::viewZoomOut,
+                            saveToDisk = viewModel::showFileNameDialog
+                        )
+                    }
+                }
+            }
+            else -> {
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                        .padding(paddingValues),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    ChartComponent(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        state = state
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp, 5.dp, 10.dp, 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        SourceSelectionBlock(
+                            showVoltageAlias = "mV",
+                            showSource1Alias = "1",
+                            showSource2Alias = "2",
+                            showSource3Alias = "3",
+                            showSource4Alias = "4",
+                            showSource5Alias = "5",
+                            showVoltage = viewModel.showRawSensors.value,
+                            showSource1 = viewModel.showSensor1.value,
+                            showSource2 = viewModel.showSensor2.value,
+                            showSource3 = viewModel.showSensor3.value,
+                            showSource4 = viewModel.showSensor4.value,
+                            showSource5 = viewModel.showSensor5.value,
+                            showSource1Color = Color.Red,
+                            showSource2Color = Color.Blue,
+                            showSource3Color = Color.Green,
+                            showSource4Color = Color.Magenta,
+                            showSource5Color = Color.Yellow,
+                            onShowVoltageChanged = {
+                                viewModel.showRawSensors.value = !viewModel.showRawSensors.value
+                            },
+                            onShowSource1Changed = {
+                                viewModel.showSensor1.value = !viewModel.showSensor1.value
+                            },
+                            onShowSource2Changed = {
+                                viewModel.showSensor2.value = !viewModel.showSensor2.value
+                            },
+                            onShowSource3Changed = {
+                                viewModel.showSensor3.value = !viewModel.showSensor3.value
+                            },
+                            onShowSource4Changed = {
+                                viewModel.showSensor4.value = !viewModel.showSensor4.value
+                            },
+                            onShowSource5Changed = {
+                                viewModel.showSensor5.value = !viewModel.showSensor5.value
+                            }
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ){
+                        ControlButtons(
+                            isScanning = viewModel.isScanning.value,
+                            isZoomed = state.isZoomed.value,
+                            startScan = viewModel::startDataRecording,
+                            stopScan = viewModel::stopDataRecording,
+                            resetView = viewModel::viewZoomOut,
+                            saveToDisk = viewModel::showFileNameDialog
+                        )
+                    }
                 }
             }
         }
