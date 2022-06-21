@@ -2,7 +2,6 @@ package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscr
 
 import android.graphics.Path
 import android.graphics.Rect
-import android.graphics.RectF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
@@ -16,6 +15,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.ChartState
+import kotlin.math.roundToInt
 
 @Composable
 fun ChartComponent(
@@ -72,8 +72,8 @@ fun ChartComponent(
                 val textWidth = bounds.width()
                 val path = Path()
 
-                path.moveTo(xStartOffset + offset - textHeight, chartHeight + 8.dp.value + textWidth)
-                path.lineTo(xStartOffset + offset, chartHeight + 8.dp.value)
+                path.moveTo(xStartOffset + offset, chartHeight + 8.dp.value + textWidth)
+                path.lineTo(xStartOffset + offset + textHeight, chartHeight + 8.dp.value)
 
                 it.nativeCanvas.drawTextOnPath(
                     text,
@@ -97,7 +97,7 @@ fun ChartComponent(
         //main division y axes
         state.yDivisionLines.value.forEachIndexed{ index, value ->
             val step = chartHeight / 10f
-            val text = String.format("%.2f", value)
+            val text = if (state.useRawValues.value) "${value.roundToInt()}" else String.format("%.2f", value)
             val offset = (10 - index) * step
 
             if (index != 0){
@@ -236,8 +236,21 @@ fun ChartComponent(
             val textWidth = bounds.width()
             it.nativeCanvas.drawText(
                 text,
-                xStartOffset + chartWidth/2 - textWidth/2,
-                chartHeight + 80.dp.value,
+                xStartOffset + chartWidth - textWidth,
+                chartHeight - textHeight,
+                textPaint
+            )
+        }
+
+        drawIntoCanvas {
+            val text = if (state.useRawValues.value) "S, mV" else "P, bar"
+            textPaint.getTextBounds(text, 0, text.length, bounds)
+            val textHeight = bounds.height()
+
+            it.nativeCanvas.drawText(
+                text,
+                xStartOffset + 8.dp.value,
+                textHeight.toFloat()/2f,
                 textPaint
             )
         }

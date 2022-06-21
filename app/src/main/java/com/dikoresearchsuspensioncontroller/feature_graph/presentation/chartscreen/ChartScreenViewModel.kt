@@ -68,6 +68,12 @@ class ChartScreenViewModel @Inject constructor(
         useRawValues = showRawSensors,
     )
 
+    override fun onCleared() {
+        super.onCleared()
+        Timber.e("Chart screen view model cleared")
+        stopDataRecording()
+    }
+
     fun showFileNameDialog(){
         _showFileNameDialog.value = true
     }
@@ -136,39 +142,55 @@ class ChartScreenViewModel @Inject constructor(
             _isScanning.value = true
             readingJob = viewModelScope.launch(Dispatchers.Default) {
                 while(true){
-//                    suspensionControllerUseCases.readSensorsValues()
-//                        .fold(
-//                            {
-//                                Timber.e("Error while reading sensors")
-//                                viewModelScope.launch {
-//                                    _eventFlow.emit(
-//                                        UiChartScreenEvents.ShowSnackbar("Error while reading sensors")
-//                                    )
-//                                }
-//                                //stopDataRecording()
-//                            },
-//                            {rawValues ->
+                    suspensionControllerUseCases.readSensorsValues()
+                        .fold(
+                            {
+                                Timber.e("Error while reading sensors")
+                                viewModelScope.launch {
+                                    _eventFlow.emit(
+                                        UiChartScreenEvents.ShowSnackbar("Error while reading sensors")
+                                    )
+                                }
+                                stopDataRecording()
+                            },
+                            {rawValues ->
+                                val rawValuesArray = arrayOf(
+                                    rawValues.pressure1_mV.toFloat(),
+                                    rawValues.pressure2_mV.toFloat(),
+                                    rawValues.pressure3_mV.toFloat(),
+                                    rawValues.pressure4_mV.toFloat(),
+                                    rawValues.pressure5_mV.toFloat(),
+                                )
+                                val pressureValues = rawValuesArray.map {rawValue ->
+                                    //TODO need to select correct equation from settings
+                                    val k = 7.24f / 1000f
+                                    val b = -2.46f
+                                    val p = if (rawValue >= 340f) k * rawValue + b else 0.0f
+                                    if (p < 0.0f) 0.0f else p
+                                }.toTypedArray()
+                                val timeStamp = prevTimeStamp
+                                val newFrame = SensorsFrame(timeStamp, pressureValues.copyOf(), rawValuesArray.copyOf())
+                                chartState.sensorsFrames.add(newFrame)
+                            }
+                        )
+
+//                    val timeStamp = prevTimeStamp
+//                    prevTimeStamp += Random.nextInt(2, 100).toFloat()
+//                    val p1 = 1000 + Random.nextInt(-500, 500)
+//                    val p2 = 1200 + Random.nextInt(-1000, 1000)
+//                    val p3 = 1500 + Random.nextInt(-500, 500)
+//                    val p4 = 2000 + Random.nextInt(-500, 500)
+//                    val p5 = 1500 + Random.nextInt(-1000, 1000)
 //
-//                            }
-//                        )
-
-                    val timeStamp = prevTimeStamp
-                    prevTimeStamp += Random.nextInt(2, 100).toFloat()
-                    val p1 = 1000 + Random.nextInt(-500, 500)
-                    val p2 = 1200 + Random.nextInt(-1000, 1000)
-                    val p3 = 1500 + Random.nextInt(-500, 500)
-                    val p4 = 2000 + Random.nextInt(-500, 500)
-                    val p5 = 1500 + Random.nextInt(-1000, 1000)
-
-                    val rawValues = arrayOf(p1.toFloat(), p2.toFloat(), p3.toFloat(), p4.toFloat(), p5.toFloat())
-                    val pressureValues = rawValues.map {rawValue ->
-                        val k = 7.24f / 1000f
-                        val b = -2.46f
-                        if (rawValue >= 6.0f) k * rawValue + b else 0.0f
-                    }.toTypedArray()
-
-                    val newFrame = SensorsFrame(timeStamp, pressureValues.copyOf(), rawValues.copyOf())
-                    chartState.sensorsFrames.add(newFrame)
+//                    val rawValues = arrayOf(p1.toFloat(), p2.toFloat(), p3.toFloat(), p4.toFloat(), p5.toFloat())
+//                    val pressureValues = rawValues.map {rawValue ->
+//                        val k = 7.24f / 1000f
+//                        val b = -2.46f
+//                        if (rawValue >= 6.0f) k * rawValue + b else 0.0f
+//                    }.toTypedArray()
+//
+//                    val newFrame = SensorsFrame(timeStamp, pressureValues.copyOf(), rawValues.copyOf())
+//                    chartState.sensorsFrames.add(newFrame)
 
                     delay(100)
                     prevTimeStamp += System.currentTimeMillis() - prevStartTime

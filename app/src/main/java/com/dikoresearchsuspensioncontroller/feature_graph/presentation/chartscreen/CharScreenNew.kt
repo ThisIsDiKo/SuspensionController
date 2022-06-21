@@ -3,6 +3,8 @@ package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscr
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +67,28 @@ fun ChartScreenNew(
 
     Scaffold(
         scaffoldState = scaffoldState,
+        topBar = {
+            TopAppBar(
+                title = {
+                        Text("Pressure sensors chart")
+                },
+                navigationIcon = {
+                    if (navController.previousBackStackEntry != null){
+                        IconButton(
+                            onClick = {
+                                navController.navigateUp()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                },
+                backgroundColor = Color.White
+            )
+        }
     ){ paddingValues ->
 
         FileNameDialog(

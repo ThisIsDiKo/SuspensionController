@@ -1,20 +1,14 @@
 package com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen
 
-import android.content.Context
-import android.os.Environment
+
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.SensorsRawValues
-import kotlinx.coroutines.*
 import timber.log.Timber
-import java.io.File
-import kotlin.math.pow
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 class ChartState(
     startFrames: List<SensorsFrame>,
@@ -117,7 +111,7 @@ class ChartState(
             val visibleFrames = tempFullList.subList(
                 fromIndex = startIndex,
                 toIndex = endIndex
-            ).also {
+            ).also { it ->
                 if (it.size == 0) return@also
                 if (it.first().timeStamp > visibleMinTime.value){
                     if (startIndex > 0){
@@ -137,7 +131,10 @@ class ChartState(
                 }
 
                 if (it.last().timeStamp < visibleMaxTime.value){
-                    if (endIndex < tempFullList.size - 1 && endIndex > 0){
+                    val e = tempFullList.indexOfLast { v ->
+                        v.timeStamp <= visibleMaxTime.value
+                    }
+                    if ((e < tempFullList.size - 1) && endIndex > 0){
                         val t = visibleMaxTime.value
                         val additionalFrame = Array(5){0.0f}
                         for (i in additionalFrame.indices){
@@ -182,7 +179,13 @@ class ChartState(
         if (showSensor5.value){
             maxValue = maxOf(maxValue, visibleSensorsFrames.value.maxOfOrNull { it.valuesToShow[4] } ?: 0f)
         }
-        maxValue
+        if (useRawValues.value){
+            (((maxValue.roundToInt() / 500) * 500) + 500).toFloat()
+        }
+        else {
+            (((maxValue.roundToInt() / 2) * 2) + 2).toFloat()
+        }
+
     }
 
     private val minValue = derivedStateOf {
@@ -194,7 +197,7 @@ class ChartState(
             minValue = minOf(minValue, visibleSensorsFrames.value.minOfOrNull { it.valuesToShow[1] } ?: 0f)
         }
         if (showSensor3.value){
-            minValue = minOf(minValue, visibleSensorsFrames.value.minOfOrNull { it.valuesToShow[2]} ?: 0f)
+            minValue = minOf(minValue, visibleSensorsFrames.value.minOfOrNull { it.valuesToShow[2] } ?: 0f)
         }
         if (showSensor4.value){
             minValue = minOf(minValue, visibleSensorsFrames.value.minOfOrNull { it.valuesToShow[3] } ?: 0f)
@@ -202,7 +205,12 @@ class ChartState(
         if (showSensor5.value){
             minValue = minOf(minValue, visibleSensorsFrames.value.minOfOrNull { it.valuesToShow[4] } ?: 0f)
         }
-        minValue
+        if (useRawValues.value){
+            ((minValue.roundToInt() / 500) * 500).toFloat()
+        }
+        else {
+            ((minValue.roundToInt() / 2) * 2).toFloat()
+        }
     }
 
     val yDivisionLines = derivedStateOf {

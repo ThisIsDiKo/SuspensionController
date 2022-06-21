@@ -1,4 +1,4 @@
-package com.dikoresearchsuspensioncontroller.feature_controller.presentation.scanscreen.subscreens
+package com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.subscreens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
@@ -25,16 +25,16 @@ fun DoubleWay(
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(padding),
-        verticalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(30.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -69,56 +69,50 @@ fun DoubleWay(
             }
         }
 
-        Column(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ControlGroup(
-                    buttonWidth = 100.dp,
-                    spacerHeight = 15.dp,
-                    onUpPressed = {
-                        writeOutputs("0001")
-                    },
-                    onDownPressed = {
-                        writeOutputs("0010")
-                    },
-                    onUpDownReleased =  {
-                        writeOutputs("0000")
-                    },
-                )
-                ControlGroup(
-                    buttonWidth = 115.dp,
-                    spacerHeight = 15.dp,
-                    onUpPressed = {
-                        writeOutputs("0101")
-                    },
-                    onDownPressed = {
-                        writeOutputs("1010")
-                    },
-                    onUpDownReleased =  {
-                        writeOutputs("0000")
-                    },
-                )
-                ControlGroup(
-                    buttonWidth = 100.dp,
-                    spacerHeight = 15.dp,
-                    onUpPressed = {
-                        writeOutputs("0100")
-                    },
-                    onDownPressed = {
-                        writeOutputs("1000")
-                    },
-                    onUpDownReleased =  {
-                        writeOutputs("0000")
-                    },
-                )
-            }
+            ControlGroup(
+                buttonWidth = 100.dp,
+                spacerHeight = 15.dp,
+                onUpPressed = {
+                    writeOutputs("0001")
+                },
+                onDownPressed = {
+                    writeOutputs("0010")
+                },
+                onUpDownReleased =  {
+                    writeOutputs("0000")
+                },
+            )
+            ControlGroup(
+                buttonWidth = 115.dp,
+                spacerHeight = 15.dp,
+                onUpPressed = {
+                    writeOutputs("0101")
+                },
+                onDownPressed = {
+                    writeOutputs("1010")
+                },
+                onUpDownReleased =  {
+                    writeOutputs("0000")
+                },
+            )
+            ControlGroup(
+                buttonWidth = 100.dp,
+                spacerHeight = 15.dp,
+                onUpPressed = {
+                    writeOutputs("0100")
+                },
+                onDownPressed = {
+                    writeOutputs("1000")
+                },
+                onUpDownReleased =  {
+                    writeOutputs("0000")
+                },
+            )
         }
     }
 }

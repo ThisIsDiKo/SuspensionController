@@ -1,4 +1,4 @@
-package com.dikoresearchsuspensioncontroller.feature_controller.presentation.scanscreen.subscreens
+package com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.subscreens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
@@ -24,7 +24,7 @@ fun SingleWay(
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(padding),
-        verticalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -33,7 +33,6 @@ fun SingleWay(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(30.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -65,30 +64,24 @@ fun SingleWay(
             }
         }
 
-        Column(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ControlGroup(
-                    buttonWidth = 100.dp,
-                    spacerHeight = 15.dp,
-                    onUpPressed = {
-                        writeOutputs("0001")
-                    },
-                    onDownPressed = {
-                        writeOutputs("0010")
-                    },
-                    onUpDownReleased =  {
-                        writeOutputs("0000")
-                    },
-                )
-            }
+            ControlGroup(
+                buttonWidth = 100.dp,
+                spacerHeight = 15.dp,
+                onUpPressed = {
+                    writeOutputs("0001")
+                },
+                onDownPressed = {
+                    writeOutputs("0010")
+                },
+                onUpDownReleased =  {
+                    writeOutputs("0000")
+                },
+            )
         }
     }
 }
