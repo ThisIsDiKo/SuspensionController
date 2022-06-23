@@ -48,7 +48,10 @@ object FeatureControllerModule {
             requestMtuFromPeripheral = RequestMtuFromPeripheral(suspensionController),
             setConnectionStatusObserver = SetConnectionStatusObserver(suspensionController),
             autoConnectPeripheral = AutoConnectPeripheral(suspensionController),
-            readControllerConfig = ReadControllerConfig(suspensionController)
+            readControllerConfig = ReadControllerConfig(suspensionController),
+            startObserveNotification = StartObserveNotification(suspensionController),
+            stopObserveNotification = StopObserveNotification(suspensionController),
+            getPeripheralConnectionState = GetPeripheralConnectionState(suspensionController)
         )
     }
 }

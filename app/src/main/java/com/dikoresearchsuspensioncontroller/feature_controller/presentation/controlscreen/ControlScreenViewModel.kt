@@ -57,24 +57,6 @@ class ControlScreenViewModel @Inject constructor(
     private var isScreenActive = false
 
     init {
-//        suspensionControllerUseCases.setConnectionStatusObserver {peripheral, state ->
-//            Timber.e("Peripheral ${peripheral.address} change state to $state")
-//            if (state == ConnectionState.DISCONNECTED && peripheral.address == deviceMacAddress){
-//                changeReconnectionDialogState(true)
-//                stopReadingSensorsValues()
-//                suspensionControllerUseCases.autoConnectPeripheral(peripheral)
-//                Timber.e("Trying to reconnect ${peripheral.address}")
-//            }
-//            else if (state == ConnectionState.CONNECTED){
-//                Timber.e("${peripheral.address} reconnected mtu is ${peripheral.currentMtu}")
-//                changeReconnectionDialogState(false)
-//                if (readingJob == null){
-//                    startReadingSensorsValues()
-//                }
-//
-//            }
-//        }
-
         viewModelScope.launch {
             applicationSettingsFlow.collectLatest { settings ->
                 deviceMacAddress = settings.deviceAddress
@@ -84,6 +66,9 @@ class ControlScreenViewModel @Inject constructor(
                 _deviceMode.value = settings.deviceMode.alias
             }
         }
+
+
+
     }
     fun changeReconnectionDialogState(state: Boolean){
         _showReconnectionDialog.value = state
@@ -155,7 +140,20 @@ class ControlScreenViewModel @Inject constructor(
 
     fun startReadingSensorsValues(){
         if (readingJob != null) return
-        //TODO: need to get connection status to start this job
+
+        if (suspensionControllerUseCases.getPeripheralConnectionState() != ConnectionState.CONNECTED){
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            suspensionControllerUseCases.startObserveNotification { value ->
+                viewModelScope.launch {
+                    _eventFlow.emit(
+                        UiEventControlScreen.ShowSnackbar("Got notification")
+                    )
+                }
+            }
+        }
 
         readingJob = viewModelScope.launch(Dispatchers.IO) {
             while(true){
@@ -212,6 +210,9 @@ class ControlScreenViewModel @Inject constructor(
             println("cancelling Job")
             readingJob?.cancel()
             readingJob = null
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            suspensionControllerUseCases.stopObserveNotification()
         }
     }
 }

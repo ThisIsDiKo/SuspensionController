@@ -1,9 +1,12 @@
 package com.dikoresearchsuspensioncontroller.feature_controller.data.ble
 
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.le.ScanResult
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.dikoresearchsuspensioncontroller.feature_controller.data.ble.ServicesUUID.CONTROL_SERVICE_UUID
+import com.dikoresearchsuspensioncontroller.feature_controller.data.ble.ServicesUUID.NOTIFICATION_ALARM_CHAR_UUID
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.ControllerConfig
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.OutputsValue
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.SensorsRawValues
@@ -15,6 +18,13 @@ import timber.log.Timber
 class SuspensionControllerRepositoryImpl(
     private val bleManager: BleManager
 ): SuspensionControllerRepository {
+
+    var notificationChar: BluetoothGattCharacteristic? = null
+
+    override fun getConnectionState(): ConnectionState{
+        return bleManager.blePeripheral?.getState() ?: ConnectionState.DISCONNECTED
+    }
+
     override fun createPeripheral(mac: String): Either<BleError, BluetoothPeripheral> {
         return try {
             bleManager.bleCentralManager.getPeripheral(mac).right()
@@ -131,6 +141,26 @@ class SuspensionControllerRepositoryImpl(
 
     override suspend fun writeCalibrationCommand(): Either<BleError, Unit> {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun observeNotifications(notificationCallback: (ByteArray) -> Unit) {
+        notificationChar = bleManager.blePeripheral?.getCharacteristic(
+            serviceUUID = CONTROL_SERVICE_UUID,
+            characteristicUUID =NOTIFICATION_ALARM_CHAR_UUID
+        )
+        if (notificationChar != null){
+            bleManager.blePeripheral?.observe(notificationChar!!, callback = notificationCallback)
+        }
+    }
+
+    override suspend fun stopObserveNotifications() {
+        if (notificationChar != null){
+            if (bleManager.blePeripheral?.getState() == ConnectionState.CONNECTED){
+                bleManager.blePeripheral?.stopObserving(notificationChar!!)
+                notificationChar = null
+            }
+
+        }
     }
 
     override fun autoConnectToPeripheral(peripheral: BluetoothPeripheral) {
