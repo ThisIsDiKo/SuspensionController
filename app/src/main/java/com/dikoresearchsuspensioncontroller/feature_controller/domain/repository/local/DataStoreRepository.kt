@@ -13,5 +13,10 @@ interface DataStoreRepository {
     suspend fun setPressureSensor(sensor: PressureSensor)
     suspend fun setPressureUnits(units: PressureUnits)
 
+    suspend fun setShowControlGroup(use: Boolean)
+    suspend fun setShowRegulationGroup(use: Boolean)
+
+    suspend fun setPressurePreset(presetNum: Int, preset: String)
+
     fun getApplicationSettingsFlow(): Flow<ApplicationSettings>
 }

@@ -8,10 +8,7 @@ import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.Appl
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.DeviceMode
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.PressureSensor
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.PressureUnits
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.OutputState
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.OutputsValue
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.SensorsRawValues
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.SensorsValues
+import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.*
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.local.DataStoreRepository
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.usecases.suspensioncontroller.SuspensionControllerUseCases
 import com.welie.blessed.ConnectionState
@@ -46,6 +43,17 @@ class ControlScreenViewModel @Inject constructor(
     private val _showPressureInTank = mutableStateOf(false)
     val showPressureInTank: State<Boolean> = _showPressureInTank
 
+    private val _showControlGroup = mutableStateOf(false)
+    val showControlGroup: State<Boolean> = _showControlGroup
+
+    private val _showRegulationGroup = mutableStateOf(false)
+    val showRegulationGroup: State<Boolean> = _showRegulationGroup
+
+    private val _isRegulating = mutableStateOf(false)
+    val isRegulating: State<Boolean> = _isRegulating
+
+
+
     private val _deviceMode = mutableStateOf(DeviceMode.DoubleWay().alias)
     val deviceMode: State<String> = _deviceMode
 
@@ -64,12 +72,12 @@ class ControlScreenViewModel @Inject constructor(
                 selectedPressureUnits = settings.pressureUnits
                 _showPressureInTank.value = settings.useTankPressure
                 _deviceMode.value = settings.deviceMode.alias
+                _showControlGroup.value = settings.showControlGroup
+                _showRegulationGroup.value = settings.showRegulationGroup
             }
         }
-
-
-
     }
+
     fun changeReconnectionDialogState(state: Boolean){
         _showReconnectionDialog.value = state
     }
@@ -134,6 +142,25 @@ class ControlScreenViewModel @Inject constructor(
         }
     }
 
+    fun writeRegulationParams(params: PressureRegulationParameters){
+        viewModelScope.launch(Dispatchers.IO) {
+            suspensionControllerUseCases.writePressureRegulation(params)
+                .fold(
+                    {
+                        Timber.e("Error while writing info")
+                        viewModelScope.launch {
+                            _eventFlow.emit(
+                                UiEventControlScreen.ShowSnackbar("Error while writing regulation")
+                            )
+                        }
+                    },
+                    {
+
+                    }
+                )
+        }
+    }
+
     fun setScreenActive(status: Boolean){
         isScreenActive = status
     }
@@ -178,6 +205,9 @@ class ControlScreenViewModel @Inject constructor(
                                     sensorsValues.calculateFromCaterpillarSensor(rawValues)
                                 }
                             }
+
+                            Timber.i("Flag is ${rawValues.flag}")
+                            _isRegulating.value = rawValues.flag > 0
 
                             when(selectedPressureUnits){
                                 is PressureUnits.Bar -> {

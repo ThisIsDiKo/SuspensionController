@@ -9,6 +9,7 @@ import com.dikoresearchsuspensioncontroller.feature_controller.data.ble.Services
 import com.dikoresearchsuspensioncontroller.feature_controller.data.ble.ServicesUUID.NOTIFICATION_ALARM_CHAR_UUID
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.ControllerConfig
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.OutputsValue
+import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.PressureRegulationParameters
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.SensorsRawValues
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.error.BleError
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.ble.SuspensionControllerRepository
@@ -143,6 +144,52 @@ class SuspensionControllerRepositoryImpl(
         TODO("Not yet implemented")
     }
 
+    override suspend fun writePressureRegulationCommand(regulationParameters: PressureRegulationParameters): Either<BleError, Unit> {
+        val commandType: Byte = if (regulationParameters.commandType == "START") 1.toByte() else 0.toByte()
+        val waysType: Byte = if (regulationParameters.waysType == "SINGLE") 2.toByte() else 1.toByte()
+        val airPreparingType: Byte = if (regulationParameters.airPreparingType == "RECEIVER") 1.toByte() else 0.toByte()
+        val useTank: Byte = if (regulationParameters.useTankPressure) 1.toByte() else 0.toByte()
+
+        val pressure1 = regulationParameters.refPressure1mV
+        val pressure2 = regulationParameters.refPressure2mV
+        val pressure3 = regulationParameters.refPressure3mV
+        val pressure4 = regulationParameters.refPressure4mV
+
+        val bytesToWrite: ByteArray = byteArrayOf(
+            commandType,
+            waysType,
+            airPreparingType,
+            useTank,
+            pressure1.toByte(),
+            (pressure1 shr 8).toByte(),
+            pressure2.toByte(),
+            (pressure2 shr 8).toByte(),
+            pressure3.toByte(),
+            (pressure3 shr 8).toByte(),
+            pressure4.toByte(),
+            (pressure4 shr 8).toByte(),
+        )
+        Timber.i("Calculated new regulationParameters info")
+        for (b in bytesToWrite){
+            Timber.i("${b.toUByte()}")
+        }
+
+        return try {
+            bleManager.blePeripheral?.writeCharacteristic(
+                serviceUUID = ServicesUUID.CONTROL_SERVICE_UUID,
+                characteristicUUID = ServicesUUID.PRESSURE_REGULATION_CHAR_UUID,
+                value = bytesToWrite,
+                writeType = WriteType.WITH_RESPONSE
+            ) ?: BleError.PeripheralIsNull("Peripheral is null").left()
+            Timber.i("Data transfered")
+            Unit.right()
+        }
+        catch (e: Exception){
+            Timber.e("Data transfer error: $e")
+            BleError.UnknownError(e.toString() ?: "").left()
+        }
+    }
+
     override suspend fun observeNotifications(notificationCallback: (ByteArray) -> Unit) {
         notificationChar = bleManager.blePeripheral?.getCharacteristic(
             serviceUUID = CONTROL_SERVICE_UUID,
@@ -188,6 +235,8 @@ class SuspensionControllerRepositoryImpl(
             val pos3 = byteArray[12].toInt()
             val pos4 = byteArray[13].toInt()
 
+            val flag = byteArray[14].toInt()
+
             return SensorsRawValues(
                 pressure1_mV = p1,
                 pressure2_mV = p2,
@@ -199,6 +248,8 @@ class SuspensionControllerRepositoryImpl(
                 pos2 = pos2,
                 pos3 = pos3,
                 pos4 = pos4,
+
+                flag = flag
             )
         }
         else {

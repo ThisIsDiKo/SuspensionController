@@ -51,7 +51,8 @@ object FeatureControllerModule {
             readControllerConfig = ReadControllerConfig(suspensionController),
             startObserveNotification = StartObserveNotification(suspensionController),
             stopObserveNotification = StopObserveNotification(suspensionController),
-            getPeripheralConnectionState = GetPeripheralConnectionState(suspensionController)
+            getPeripheralConnectionState = GetPeripheralConnectionState(suspensionController),
+            writePressureRegulation = WritePressureRegulation(suspensionController)
         )
     }
 }

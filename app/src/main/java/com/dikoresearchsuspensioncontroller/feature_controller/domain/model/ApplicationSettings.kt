@@ -10,6 +10,14 @@ data class ApplicationSettings(
     val useTankPressure: Boolean,
     val pressureSensorType: PressureSensor,
     val pressureUnits: PressureUnits,
+
+    val showControlGroup: Boolean,
+    val showRegulationGroup: Boolean,
+
+    val pressurePreset1: String,
+    val pressurePreset2: String,
+    val pressurePreset3: String,
+
 )
 
 sealed class PressureSensor(val alias: String){

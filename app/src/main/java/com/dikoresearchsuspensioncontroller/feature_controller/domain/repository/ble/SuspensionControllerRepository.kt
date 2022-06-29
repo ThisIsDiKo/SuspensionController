@@ -4,6 +4,7 @@ import android.bluetooth.le.ScanResult
 import arrow.core.Either
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.ControllerConfig
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.OutputsValue
+import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.PressureRegulationParameters
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.SensorsRawValues
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.error.BleError
 import com.welie.blessed.BluetoothPeripheral
@@ -26,6 +27,7 @@ interface SuspensionControllerRepository {
     suspend fun writeConfig(): Either<BleError, Unit>
     suspend fun readConfig(): Either<BleError, ControllerConfig>
     suspend fun writeCalibrationCommand(): Either<BleError, Unit>
+    suspend fun writePressureRegulationCommand(regulationParameters: PressureRegulationParameters): Either<BleError, Unit>
 
     suspend fun observeNotifications(notificationCallback: (ByteArray) -> Unit)
     suspend fun stopObserveNotifications()

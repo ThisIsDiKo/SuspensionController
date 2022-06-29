@@ -12,4 +12,11 @@ object SettingsKeys {
     val DEVICE_MODE = stringPreferencesKey("device_mode")
     val PRESSURE_SENSOR = stringPreferencesKey("pressure_sensors")
     val PRESSURE_UNITS = stringPreferencesKey("pressure_units")
+
+    val USE_CONTROL_GROUP = booleanPreferencesKey("use_control_group")
+    val USE_PRESSURE_REGULATION = booleanPreferencesKey("use_pressure_regulation")
+    val PRESSURE_SETUP_1 = stringPreferencesKey("pressure_setup_1")
+    val PRESSURE_SETUP_2 = stringPreferencesKey("pressure_setup_2")
+    val PRESSURE_SETUP_3 = stringPreferencesKey("pressure_setup_3")
+
 }

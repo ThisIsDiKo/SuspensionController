@@ -12,5 +12,7 @@ data class SensorsRawValues(
     val pos3: Int = 0,
     val pos4: Int = 0,
 
+    val flag: Int = 0,
+
     val error: String = ""
 )

@@ -1,6 +1,7 @@
 package com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.subscreens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -10,6 +11,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.PressureRegulationParameters
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.components.AirBag
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.components.ControlGroup
 
@@ -20,7 +22,10 @@ fun DoubleWay(
     pressure2: String,
     pressureTank: String,
     showPressureInTank: Boolean,
-    writeOutputs: (String) -> Unit
+    showControlGroup: Boolean,
+    showRegulationGroup: Boolean,
+    writeOutputs: (String) -> Unit,
+    writeRegulation: (PressureRegulationParameters) -> Unit
 ){
     Column(modifier = Modifier
         .fillMaxSize()
@@ -30,7 +35,8 @@ fun DoubleWay(
     ) {
 
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -69,50 +75,115 @@ fun DoubleWay(
             }
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ControlGroup(
-                buttonWidth = 100.dp,
-                spacerHeight = 15.dp,
-                onUpPressed = {
-                    writeOutputs("0001")
-                },
-                onDownPressed = {
-                    writeOutputs("0010")
-                },
-                onUpDownReleased =  {
-                    writeOutputs("0000")
-                },
-            )
-            ControlGroup(
-                buttonWidth = 115.dp,
-                spacerHeight = 15.dp,
-                onUpPressed = {
-                    writeOutputs("0101")
-                },
-                onDownPressed = {
-                    writeOutputs("1010")
-                },
-                onUpDownReleased =  {
-                    writeOutputs("0000")
-                },
-            )
-            ControlGroup(
-                buttonWidth = 100.dp,
-                spacerHeight = 15.dp,
-                onUpPressed = {
-                    writeOutputs("0100")
-                },
-                onDownPressed = {
-                    writeOutputs("1000")
-                },
-                onUpDownReleased =  {
-                    writeOutputs("0000")
-                },
-            )
+        if (showControlGroup){
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ControlGroup(
+                    buttonWidth = 100.dp,
+                    spacerHeight = 15.dp,
+                    onUpPressed = {
+                        writeOutputs("0001")
+                    },
+                    onDownPressed = {
+                        writeOutputs("0010")
+                    },
+                    onUpDownReleased =  {
+                        writeOutputs("0000")
+                    },
+                )
+                ControlGroup(
+                    buttonWidth = 115.dp,
+                    spacerHeight = 15.dp,
+                    onUpPressed = {
+                        writeOutputs("0101")
+                    },
+                    onDownPressed = {
+                        writeOutputs("1010")
+                    },
+                    onUpDownReleased =  {
+                        writeOutputs("0000")
+                    },
+                )
+                ControlGroup(
+                    buttonWidth = 100.dp,
+                    spacerHeight = 15.dp,
+                    onUpPressed = {
+                        writeOutputs("0100")
+                    },
+                    onDownPressed = {
+                        writeOutputs("1000")
+                    },
+                    onUpDownReleased =  {
+                        writeOutputs("0000")
+                    },
+                )
+            }
+        }
+
+        if (showRegulationGroup){
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        val params = PressureRegulationParameters(
+                            commandType = "START",
+                            waysType = "DOUBLE",
+                            airPreparingType = "RECEIVER",
+                            airPressureSensorType = "None",
+                            useTankPressure = false,
+                            refPressure1mV = 1000,
+                            refPressure2mV = 1000,
+                            refPressure3mV = 1100,
+                            refPressure4mV = 1300,
+                        )
+                        writeRegulation(params)
+                    }
+                ) {
+                    Text(text = "Go preset 1")
+                }
+                Button(
+                    onClick = {
+                        val params = PressureRegulationParameters(
+                            commandType = "START",
+                            waysType = "DOUBLE",
+                            airPreparingType = "RECEIVER",
+                            airPressureSensorType = "None",
+                            useTankPressure = false,
+                            refPressure1mV = 500,
+                            refPressure2mV = 500,
+                            refPressure3mV = 555,
+                            refPressure4mV = 565,
+                        )
+                        writeRegulation(params)
+                    }
+                ){
+                    Text(text = "Go preset 2")
+                }
+                Button(
+                    onClick = {
+                        val params = PressureRegulationParameters(
+                            commandType = "STOP",
+                            waysType = "DOUBLE",
+                            airPreparingType = "RECEIVER",
+                            airPressureSensorType = "None",
+                            useTankPressure = false,
+                            refPressure1mV = 1000,
+                            refPressure2mV = 1000,
+                            refPressure3mV = 1100,
+                            refPressure4mV = 1300,
+                        )
+                        writeRegulation(params)
+                    }
+                ){
+                    Text(text = "stop")
+                }
+            }
         }
     }
 }

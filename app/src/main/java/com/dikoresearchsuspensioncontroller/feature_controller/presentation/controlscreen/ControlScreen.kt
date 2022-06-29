@@ -121,7 +121,9 @@ fun ControlScreen(
         topBar = {
             TopAppBar(
                 title = {
-
+                    if (viewModel.isRegulating.value){
+                        CircularProgressIndicator()
+                    }
                 },
                 actions = {
                     IconButton(onClick = {
@@ -169,7 +171,10 @@ fun ControlScreen(
                     pressure2 = controllerData.pressure2,
                     pressureTank = controllerData.pressureTank,
                     showPressureInTank = showPressureInTank.value,
-                    writeOutputs = viewModel::writeOutputs
+                    showControlGroup = viewModel.showControlGroup.value,
+                    showRegulationGroup = viewModel.showRegulationGroup.value,
+                    writeOutputs = viewModel::writeOutputs,
+                    writeRegulation = viewModel::writeRegulationParams
                 )
             }
             DeviceMode.SingleWay().alias -> {

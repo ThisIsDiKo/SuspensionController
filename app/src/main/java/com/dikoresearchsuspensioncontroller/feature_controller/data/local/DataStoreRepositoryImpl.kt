@@ -8,6 +8,7 @@ import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 
 private const val APPLICATION_SETTINGS_NAME = "application-settings"
@@ -65,6 +66,41 @@ class DataStoreRepositoryImpl @Inject constructor(context: Context): DataStoreRe
         }
     }
 
+    override suspend fun setShowControlGroup(use: Boolean) {
+        appDataStore.edit { settings ->
+            settings[SettingsKeys.USE_CONTROL_GROUP] = use
+        }
+    }
+
+    override suspend fun setShowRegulationGroup(use: Boolean) {
+        appDataStore.edit { settings ->
+            settings[SettingsKeys.USE_PRESSURE_REGULATION] = use
+        }
+    }
+
+    override suspend fun setPressurePreset(presetNum: Int, preset: String) {
+        when(presetNum){
+            1 -> {
+                appDataStore.edit { settings ->
+                    settings[SettingsKeys.PRESSURE_SETUP_1] = preset
+                }
+            }
+            2 -> {
+                appDataStore.edit { settings ->
+                    settings[SettingsKeys.PRESSURE_SETUP_2] = preset
+                }
+            }
+            3 -> {
+                appDataStore.edit { settings ->
+                    settings[SettingsKeys.PRESSURE_SETUP_3] = preset
+                }
+            }
+            else ->{
+                Timber.e("Unknown preset Number")
+            }
+        }
+    }
+
     override fun getApplicationSettingsFlow(): Flow<ApplicationSettings> = appDataStore.data
         .catch { exception ->
             throw exception
@@ -101,6 +137,13 @@ class DataStoreRepositoryImpl @Inject constructor(context: Context): DataStoreRe
                 else -> PressureUnits.Bar()
             }
 
+            val useControlGroup = settings[SettingsKeys.USE_CONTROL_GROUP] ?: true
+            val usePressureRegulation = settings[SettingsKeys.USE_PRESSURE_REGULATION] ?: false
+
+            val pressurePreset1 = settings[SettingsKeys.PRESSURE_SETUP_1] ?: "0,0,0,0"
+            val pressurePreset2 = settings[SettingsKeys.PRESSURE_SETUP_2] ?: "0,0,0,0"
+            val pressurePreset3 = settings[SettingsKeys.PRESSURE_SETUP_3] ?: "0,0,0,0"
+
            ApplicationSettings(
                deviceAddress = deviceAddress,
                deviceName = deviceName,
@@ -109,7 +152,12 @@ class DataStoreRepositoryImpl @Inject constructor(context: Context): DataStoreRe
                deviceMode = deviceMode,
                useTankPressure = useTankPressure,
                pressureSensorType = pressureSensor,
-               pressureUnits = pressureUnits
+               pressureUnits = pressureUnits,
+               showControlGroup = useControlGroup,
+               showRegulationGroup = usePressureRegulation,
+               pressurePreset1 = pressurePreset1,
+               pressurePreset2 = pressurePreset2,
+               pressurePreset3 = pressurePreset3,
            )
         }
 

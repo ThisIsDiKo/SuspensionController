@@ -34,17 +34,36 @@ class SettingsScreenViewModel @Inject constructor(
     fun setUseTankPressure(use: Boolean){
         viewModelScope.launch {
             dataStoreManager.setUseTankPressure(use)
+            clearPressurePresets()
         }
     }
     fun setDeviceMode(mode: DeviceMode){
         viewModelScope.launch {
             dataStoreManager.setDeviceMode(mode)
+            clearPressurePresets()
         }
     }
 
     fun setPressureSensor(pressureSensor: PressureSensor){
         viewModelScope.launch {
             dataStoreManager.setPressureSensor(pressureSensor)
+        }
+    }
+
+    fun setShowControlGroup(use: Boolean){
+        viewModelScope.launch {
+            dataStoreManager.setShowControlGroup(use)
+            if (!use){
+                dataStoreManager.setShowRegulationGroup(use)
+            }
+            clearPressurePresets()
+        }
+    }
+
+    fun setShowRegulationGroup(use: Boolean){
+        viewModelScope.launch {
+            dataStoreManager.setShowRegulationGroup(use)
+            clearPressurePresets()
         }
     }
 
@@ -83,6 +102,8 @@ class SettingsScreenViewModel @Inject constructor(
             dataStoreManager.setPressureSensor(PressureSensor.China_0_20())
             dataStoreManager.setPressureUnits(PressureUnits.Bar())
 
+            clearPressurePresets()
+
             _eventFlow.emit(
                 UiEventSettingsScreen.NavigateTo("scanscreen")
             )
@@ -95,5 +116,11 @@ class SettingsScreenViewModel @Inject constructor(
 
     fun dialogDismissRequest(){
         _showClearDialog.value = false
+    }
+
+    suspend fun clearPressurePresets(){
+        dataStoreManager.setPressurePreset(1, "0,0,0,0")
+        dataStoreManager.setPressurePreset(2, "0,0,0,0")
+        dataStoreManager.setPressurePreset(3, "0,0,0,0")
     }
 }

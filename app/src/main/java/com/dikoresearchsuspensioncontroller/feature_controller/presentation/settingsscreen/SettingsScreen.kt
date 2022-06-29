@@ -41,7 +41,12 @@ fun SettingsScreen(
             deviceType = DeviceType.SimplePressure(),
             useTankPressure = false,
             pressureSensorType = PressureSensor.China_0_20(),
-            pressureUnits = PressureUnits.Bar()
+            pressureUnits = PressureUnits.Bar(),
+            showRegulationGroup = false,
+            showControlGroup = true,
+            pressurePreset1 = "0,0,0,0",
+            pressurePreset2 = "0,0,0,0",
+            pressurePreset3 = "0,0,0,0"
         )
     )
 
@@ -230,6 +235,46 @@ fun SettingsScreen(
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Show control group"
+                )
+
+                Switch(
+                    checked = settings.value.showControlGroup,
+                    onCheckedChange = {
+                        viewModel.setShowControlGroup(it)
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Show regulation group"
+                )
+
+                Switch(
+                    checked = settings.value.showRegulationGroup,
+                    onCheckedChange = {
+                        viewModel.setShowRegulationGroup(it)
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

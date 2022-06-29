@@ -13,5 +13,6 @@ data class SuspensionControllerUseCases(
     val readControllerConfig: ReadControllerConfig,
     val startObserveNotification: StartObserveNotification,
     val stopObserveNotification: StopObserveNotification,
-    val getPeripheralConnectionState: GetPeripheralConnectionState
+    val getPeripheralConnectionState: GetPeripheralConnectionState,
+    val writePressureRegulation: WritePressureRegulation
 )
