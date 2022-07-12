@@ -2,6 +2,7 @@ package com.dikoresearchsuspensioncontroller.feature_controller.presentation.con
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.ApplicationSettings
@@ -11,6 +12,8 @@ import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.Pres
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.*
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.local.DataStoreRepository
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.usecases.suspensioncontroller.SuspensionControllerUseCases
+import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.components.PresetButtonState
+import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.components.PresetFloatingButtonState
 import com.welie.blessed.ConnectionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +55,13 @@ class ControlScreenViewModel @Inject constructor(
     private val _isRegulating = mutableStateOf(false)
     val isRegulating: State<Boolean> = _isRegulating
 
+    private val _presetState = mutableStateOf(PresetState())
+    val presetState: State<PresetState> = _presetState
+
+    val expandedState = mutableStateOf(PresetFloatingButtonState.COLLAPSED)
+    val presetButton1State = mutableStateOf(PresetButtonState.COLLAPSED)
+    val presetButton2State = mutableStateOf(PresetButtonState.COLLAPSED)
+    val presetButton3State = mutableStateOf(PresetButtonState.COLLAPSED)
 
 
     private val _deviceMode = mutableStateOf(DeviceMode.DoubleWay().alias)
@@ -64,6 +74,12 @@ class ControlScreenViewModel @Inject constructor(
 
     private var isScreenActive = false
 
+    private var pressurePreset1 = "0,0,0,0"
+    private var pressurePreset2 = "0,0,0,0"
+    private var pressurePreset3 = "0,0,0,0"
+
+    private var currentRawValues = SensorsRawValues()
+
     init {
         viewModelScope.launch {
             applicationSettingsFlow.collectLatest { settings ->
@@ -74,6 +90,9 @@ class ControlScreenViewModel @Inject constructor(
                 _deviceMode.value = settings.deviceMode.alias
                 _showControlGroup.value = settings.showControlGroup
                 _showRegulationGroup.value = settings.showRegulationGroup
+                pressurePreset1 = settings.pressurePreset1
+                pressurePreset2 = settings.pressurePreset2
+                pressurePreset3 = settings.pressurePreset3
             }
         }
     }
@@ -108,6 +127,7 @@ class ControlScreenViewModel @Inject constructor(
     }
 
     fun writeOutputs(msg: String){
+        hideExpandedPresetGroup()
         val outputsValue = OutputsValue(10)
         when(msg){
             "0001" -> outputsValue.setOutput(0, OutputState.HIGH)
@@ -161,6 +181,155 @@ class ControlScreenViewModel @Inject constructor(
         }
     }
 
+    fun savePresetClicked(presetNum: Int){
+        hidePresetValues()
+        hideExpandedPresetGroup()
+
+        viewModelScope.launch(Dispatchers.IO) {
+            var preset = "0,0,0,0"
+            when(_deviceMode.value){
+                DeviceMode.SingleWay().alias -> {
+                    if(currentRawValues.pressure1_mV > 6){
+                        preset = "${currentRawValues.pressure1_mV},0,0,0"
+                    }
+                }
+                DeviceMode.DoubleWay().alias -> {
+                    if(currentRawValues.pressure1_mV > 6 && currentRawValues.pressure2_mV > 6){
+                        preset = "${currentRawValues.pressure1_mV},${currentRawValues.pressure2_mV},0,0"
+                    }
+                }
+                DeviceMode.QuadroWay().alias -> {
+                    if(currentRawValues.pressure1_mV > 6 && currentRawValues.pressure2_mV > 6 &&
+                        currentRawValues.pressure3_mV > 6 && currentRawValues.pressure4_mV > 6 ){
+                        preset = "${currentRawValues.pressure1_mV},${currentRawValues.pressure2_mV},${currentRawValues.pressure3_mV},${currentRawValues.pressure4_mV}"
+                    }
+                }
+                else -> {
+                    preset = "0,0,0,0"
+                }
+            }
+            Timber.i("Saving preset: $preset")
+            dataStoreManager.setPressurePreset(
+                presetNum,
+                preset
+            )
+        }
+    }
+
+    fun selectPresetClicked(presetNum: Int){
+        val presetToSend = when(presetNum){
+            1 -> {
+                pressurePreset1
+            }
+            2 -> {
+                pressurePreset2
+            }
+            3 -> {
+                pressurePreset3
+            }
+            else -> {
+                "0,0,0,0"
+            }
+        }
+        val presetPressure = presetToSend.split(",").map{it.toInt()}.toTypedArray()
+        val sensorsValues = SensorsValues()
+        val rawValues = SensorsRawValues(
+            pressure1_mV = presetPressure[0],
+            pressure2_mV = presetPressure[1],
+            pressure3_mV = presetPressure[2],
+            pressure4_mV = presetPressure[3],
+        )
+
+        when(selectedPressureSensor){
+            is PressureSensor.China_0_20 -> {
+                sensorsValues.calculateFromChinaSensor(rawValues)
+            }
+            is PressureSensor.Catterpillar -> {
+                sensorsValues.calculateFromCaterpillarSensor(rawValues)
+            }
+        }
+
+        when(selectedPressureUnits){
+            is PressureUnits.Bar -> {
+                //Timber.i("Sensors data: $sensorsValues")
+                _presetState.value = presetState.value.copy(
+                    showPresetValues = true,
+                    presetPressure1 = if(sensorsValues.pressure1 >= 0.0)  String.format("%.1f", sensorsValues.pressure1) else "----",
+                    presetPressure2 = if(sensorsValues.pressure2 >= 0.0)  String.format("%.1f", sensorsValues.pressure2) else "----",
+                    presetPressure3 = if(sensorsValues.pressure3 >= 0.0)  String.format("%.1f", sensorsValues.pressure3) else "----",
+                    presetPressure4 = if(sensorsValues.pressure4 >= 0.0)  String.format("%.1f", sensorsValues.pressure4) else "----",
+                )
+            }
+            is PressureUnits.Psi -> {
+                sensorsValues.convertToPsi()
+                //Timber.i("Sensors data: $sensorsValues")
+                _presetState.value = presetState.value.copy(
+                    showPresetValues = true,
+                    presetPressure1 = if(sensorsValues.pressure1 >= 0.0)  String.format("%.0f", sensorsValues.pressure1) else "----",
+                    presetPressure2 = if(sensorsValues.pressure2 >= 0.0)  String.format("%.0f", sensorsValues.pressure2) else "----",
+                    presetPressure3 = if(sensorsValues.pressure3 >= 0.0)  String.format("%.0f", sensorsValues.pressure3) else "----",
+                    presetPressure4 = if(sensorsValues.pressure4 >= 0.0)  String.format("%.0f", sensorsValues.pressure4) else "----",
+                )
+            }
+        }
+    }
+
+    fun hidePresetValues(){
+        _presetState.value = presetState.value.copy(
+            showPresetValues = false
+        )
+    }
+
+    fun hideExpandedPresetGroup(){
+        expandedState.value = PresetFloatingButtonState.COLLAPSED
+        presetButton1State.value = PresetButtonState.COLLAPSED
+        presetButton2State.value = PresetButtonState.COLLAPSED
+        presetButton3State.value = PresetButtonState.COLLAPSED
+    }
+
+    fun sendPresetClicked(presetNum: Int){
+        hidePresetValues()
+        hideExpandedPresetGroup()
+        val presetToSend = when(presetNum){
+            1 -> {
+                pressurePreset1
+            }
+            2 -> {
+                pressurePreset2
+            }
+            3 -> {
+                pressurePreset3
+            }
+            else -> {
+                "0,0,0,0"
+            }
+        }
+        //TODO adapt to current control params
+        val waysType = "DOUBLE"
+        val airPreparingType = "RECEIVER"
+
+        //TODO add cast check
+        val presetPressure = presetToSend.split(",").map{it.toInt()}.toTypedArray()
+        Timber.i("Sending params $presetPressure")
+
+        val paramsToSend = PressureRegulationParameters(
+            commandType = "START",
+            waysType = waysType,
+            airPreparingType = airPreparingType,
+            useTankPressure = false,
+            airPressureSensorType = "None",
+            refPressure1mV = presetPressure[0],
+            refPressure2mV = presetPressure[1],
+            refPressure3mV = presetPressure[2],
+            refPressure4mV = presetPressure[3]
+        )
+
+        Timber.i("Params object: $paramsToSend")
+
+        writeRegulationParams(paramsToSend)
+
+    }
+
     fun setScreenActive(status: Boolean){
         isScreenActive = status
     }
@@ -196,6 +365,7 @@ class ControlScreenViewModel @Inject constructor(
                         },
                         {rawValues ->
                             val sensorsValues = SensorsValues()
+                            currentRawValues = rawValues.copy()
                             //Timber.i("Sensors raw data: $rawValues")
                             when(selectedPressureSensor){
                                 is PressureSensor.China_0_20 -> {

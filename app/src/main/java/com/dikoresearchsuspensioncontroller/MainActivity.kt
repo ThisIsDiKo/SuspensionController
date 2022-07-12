@@ -20,6 +20,7 @@ import com.dikoresearchsuspensioncontroller.feature_controller.presentation.scan
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.settingsscreen.SettingsScreen
 import com.dikoresearchsuspensioncontroller.feature_controller.presentation.startscreen.StartScreen
 import com.dikoresearchsuspensioncontroller.feature_graph.presentation.chartscreen.*
+import com.dikoresearchsuspensioncontroller.feature_graph.presentation.pressureAction.PressureActionsScreen
 import com.dikoresearchsuspensioncontroller.ui.theme.SuspensionControllerTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
 
-                NavHost(navController = navController, startDestination = "startscreen"){
+                NavHost(navController = navController, startDestination = "simplescreen"){
                     composable("startscreen"){ StartScreen(navController = navController)}
                     composable("scanscreen"){ScanScreen(navController = navController)}
                     composable("controlscreen"){ControlScreen(navController = navController)}
@@ -55,7 +56,7 @@ class MainActivity : ComponentActivity() {
                         ChartScreenNew(navController = navController)
                     }
                     composable("simplescreen"){
-                        SimpleScreen()
+                        PressureActionsScreen()
                     }
                 }
             }

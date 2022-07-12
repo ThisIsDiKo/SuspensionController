@@ -16,6 +16,7 @@ interface DataStoreRepository {
     suspend fun setShowControlGroup(use: Boolean)
     suspend fun setShowRegulationGroup(use: Boolean)
 
+    suspend fun setAirPreparingSystem(airPreparingSystem: AirPreparingSystem)
     suspend fun setPressurePreset(presetNum: Int, preset: String)
 
     fun getApplicationSettingsFlow(): Flow<ApplicationSettings>

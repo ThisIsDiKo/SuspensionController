@@ -166,6 +166,7 @@ fun ControlScreen(
         when(deviceMode.value){
             DeviceMode.DoubleWay().alias -> {
                 DoubleWay(
+                    viewModel = viewModel,
                     padding = padding,
                     pressure1 = controllerData.pressure1,
                     pressure2 = controllerData.pressure2,

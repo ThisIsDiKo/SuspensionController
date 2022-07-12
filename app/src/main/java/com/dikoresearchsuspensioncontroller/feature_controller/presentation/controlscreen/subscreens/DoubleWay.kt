@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -11,12 +13,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.PressureRegulationParameters
-import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.components.AirBag
-import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.components.ControlGroup
+import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.ControlScreenViewModel
+import com.dikoresearchsuspensioncontroller.feature_controller.presentation.controlscreen.components.*
 
 @Composable
 fun DoubleWay(
+    viewModel: ControlScreenViewModel,
     padding: PaddingValues,
     pressure1: String,
     pressure2: String,
@@ -27,6 +31,9 @@ fun DoubleWay(
     writeOutputs: (String) -> Unit,
     writeRegulation: (PressureRegulationParameters) -> Unit
 ){
+
+
+
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(padding),
@@ -124,66 +131,37 @@ fun DoubleWay(
         }
 
         if (showRegulationGroup){
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = {
-                        val params = PressureRegulationParameters(
-                            commandType = "START",
-                            waysType = "DOUBLE",
-                            airPreparingType = "RECEIVER",
-                            airPressureSensorType = "None",
-                            useTankPressure = false,
-                            refPressure1mV = 1000,
-                            refPressure2mV = 1000,
-                            refPressure3mV = 1100,
-                            refPressure4mV = 1300,
-                        )
-                        writeRegulation(params)
-                    }
-                ) {
-                    Text(text = "Go preset 1")
-                }
-                Button(
-                    onClick = {
-                        val params = PressureRegulationParameters(
-                            commandType = "START",
-                            waysType = "DOUBLE",
-                            airPreparingType = "RECEIVER",
-                            airPressureSensorType = "None",
-                            useTankPressure = false,
-                            refPressure1mV = 500,
-                            refPressure2mV = 500,
-                            refPressure3mV = 555,
-                            refPressure4mV = 565,
-                        )
-                        writeRegulation(params)
-                    }
-                ){
-                    Text(text = "Go preset 2")
-                }
-                Button(
-                    onClick = {
-                        val params = PressureRegulationParameters(
+            PressureRegulationGroup(
+                expandedState = viewModel.expandedState,
+                presetButton1State = viewModel.presetButton1State,
+                presetButton2State = viewModel.presetButton2State,
+                presetButton3State = viewModel.presetButton3State,
+                floatButtonClicked = {
+                    //Stop regulation
+                    viewModel.writeRegulationParams(
+                        PressureRegulationParameters(
                             commandType = "STOP",
-                            waysType = "DOUBLE",
-                            airPreparingType = "RECEIVER",
-                            airPressureSensorType = "None",
+                            waysType = "waysType",
+                            airPreparingType = "airPreparingType",
                             useTankPressure = false,
-                            refPressure1mV = 1000,
-                            refPressure2mV = 1000,
-                            refPressure3mV = 1100,
-                            refPressure4mV = 1300,
+                            airPressureSensorType = "None",
+                            refPressure1mV = 0,
+                            refPressure2mV = 0,
+                            refPressure3mV = 0,
+                            refPressure4mV = 0
                         )
-                        writeRegulation(params)
-                    }
-                ){
-                    Text(text = "stop")
+                    )
+                },
+                selectClicked = {
+                    viewModel.selectPresetClicked(it)
+                },
+                saveClicked = {
+                    viewModel.savePresetClicked(it)
+                },
+                sendClicked = {
+                    viewModel.sendPresetClicked(it)
                 }
-            }
+            )
         }
     }
 }

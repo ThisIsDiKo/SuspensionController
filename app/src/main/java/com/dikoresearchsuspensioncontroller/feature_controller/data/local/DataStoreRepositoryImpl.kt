@@ -78,6 +78,12 @@ class DataStoreRepositoryImpl @Inject constructor(context: Context): DataStoreRe
         }
     }
 
+    override suspend fun setAirPreparingSystem(airPreparingSystem: AirPreparingSystem) {
+        appDataStore.edit { settings ->
+            settings[SettingsKeys.AIR_PREPARING_SYSTEM] = airPreparingSystem.alias
+        }
+    }
+
     override suspend fun setPressurePreset(presetNum: Int, preset: String) {
         when(presetNum){
             1 -> {
@@ -137,6 +143,12 @@ class DataStoreRepositoryImpl @Inject constructor(context: Context): DataStoreRe
                 else -> PressureUnits.Bar()
             }
 
+            val airPreparingSystem = when(settings[SettingsKeys.AIR_PREPARING_SYSTEM]){
+                AirPreparingSystem.CompressorSystem().alias -> AirPreparingSystem.CompressorSystem()
+                AirPreparingSystem.ReceiverSystem().alias -> AirPreparingSystem.ReceiverSystem()
+                else -> AirPreparingSystem.ReceiverSystem()
+            }
+
             val useControlGroup = settings[SettingsKeys.USE_CONTROL_GROUP] ?: true
             val usePressureRegulation = settings[SettingsKeys.USE_PRESSURE_REGULATION] ?: false
 
@@ -155,6 +167,7 @@ class DataStoreRepositoryImpl @Inject constructor(context: Context): DataStoreRe
                pressureUnits = pressureUnits,
                showControlGroup = useControlGroup,
                showRegulationGroup = usePressureRegulation,
+               airPreparingSystem = airPreparingSystem,
                pressurePreset1 = pressurePreset1,
                pressurePreset2 = pressurePreset2,
                pressurePreset3 = pressurePreset3,

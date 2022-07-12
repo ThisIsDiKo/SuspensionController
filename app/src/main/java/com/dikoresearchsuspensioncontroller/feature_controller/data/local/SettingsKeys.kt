@@ -15,6 +15,7 @@ object SettingsKeys {
 
     val USE_CONTROL_GROUP = booleanPreferencesKey("use_control_group")
     val USE_PRESSURE_REGULATION = booleanPreferencesKey("use_pressure_regulation")
+    val AIR_PREPARING_SYSTEM = stringPreferencesKey("air_preparing_system")
     val PRESSURE_SETUP_1 = stringPreferencesKey("pressure_setup_1")
     val PRESSURE_SETUP_2 = stringPreferencesKey("pressure_setup_2")
     val PRESSURE_SETUP_3 = stringPreferencesKey("pressure_setup_3")

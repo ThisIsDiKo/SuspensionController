@@ -14,6 +14,8 @@ data class ApplicationSettings(
     val showControlGroup: Boolean,
     val showRegulationGroup: Boolean,
 
+    val airPreparingSystem: AirPreparingSystem,
+
     val pressurePreset1: String,
     val pressurePreset2: String,
     val pressurePreset3: String,
@@ -39,6 +41,11 @@ sealed class DeviceMode(val alias: String){
 sealed class DeviceType(val alias: String){
     class SimplePressure(): DeviceType("Simple only Pressure")
     class QuadroPressure(): DeviceType("Quadro only Pressure")
+}
+
+sealed class AirPreparingSystem(val alias: String){
+    class CompressorSystem: AirPreparingSystem("Compressor")
+    class ReceiverSystem: AirPreparingSystem("Receiver")
 }
 
 

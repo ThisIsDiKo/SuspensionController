@@ -169,16 +169,6 @@ fun PressureAction(){
                         contentDescription = null,
                     )
                 }
-//                OutlinedButton(onClick = { },
-//                    modifier = Modifier.offset(translateButtons.value * 3, -translateSubButtons.value)
-//                        .size(40.dp),
-//                    shape = CircleShape,
-//                    border= BorderStroke(2.dp, Color(0XFF0F9D58)),
-//                    colors = ButtonDefaults.outlinedButtonColors(contentColor =  Color.Blue)
-//                ) {
-//                    // Adding an Icon "Add" inside the Button
-//                    Icon(Icons.Default.Add ,contentDescription = "content description", tint=Color(0XFF0F9D58))
-//                }
                 Button(
                     modifier = Modifier
                         .offset(translateButtons.value * 3, 0.dp)
