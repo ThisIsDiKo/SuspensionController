@@ -182,8 +182,8 @@ class ControlScreenViewModel @Inject constructor(
     }
 
     fun savePresetClicked(presetNum: Int){
-        hidePresetValues()
-        hideExpandedPresetGroup()
+        //hidePresetValues()
+        //hideExpandedPresetGroup()
 
         viewModelScope.launch(Dispatchers.IO) {
             var preset = "0,0,0,0"
@@ -213,6 +213,11 @@ class ControlScreenViewModel @Inject constructor(
                 presetNum,
                 preset
             )
+            viewModelScope.launch {
+                _eventFlow.emit(
+                    UiEventControlScreen.ShowSnackbar("Preset saved")
+                )
+            }
         }
     }
 
@@ -281,6 +286,7 @@ class ControlScreenViewModel @Inject constructor(
     }
 
     fun hideExpandedPresetGroup(){
+        hidePresetValues()
         expandedState.value = PresetFloatingButtonState.COLLAPSED
         presetButton1State.value = PresetButtonState.COLLAPSED
         presetButton2State.value = PresetButtonState.COLLAPSED
@@ -327,6 +333,12 @@ class ControlScreenViewModel @Inject constructor(
         Timber.i("Params object: $paramsToSend")
 
         writeRegulationParams(paramsToSend)
+
+        viewModelScope.launch {
+            _eventFlow.emit(
+                UiEventControlScreen.ShowSnackbar("Preset sent")
+            )
+        }
 
     }
 

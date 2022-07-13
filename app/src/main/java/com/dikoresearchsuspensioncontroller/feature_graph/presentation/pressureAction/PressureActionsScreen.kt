@@ -36,6 +36,9 @@ fun PressureActionsScreen(){
             presetButton3State = remember {
                 mutableStateOf(PresetButtonState.COLLAPSED)
             },
+            floatButtonClicked = {
+
+            },
             selectClicked = {
 
             },

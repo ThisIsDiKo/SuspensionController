@@ -44,6 +44,7 @@ fun SettingsScreen(
             pressureUnits = PressureUnits.Bar(),
             showRegulationGroup = false,
             showControlGroup = true,
+            airPreparingSystem = AirPreparingSystem.ReceiverSystem(),
             pressurePreset1 = "0,0,0,0",
             pressurePreset2 = "0,0,0,0",
             pressurePreset3 = "0,0,0,0"

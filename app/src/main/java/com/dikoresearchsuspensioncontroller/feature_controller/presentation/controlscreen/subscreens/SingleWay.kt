@@ -46,6 +46,8 @@ fun SingleWay(
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                     ),
+                    showPreset = true,
+                    presetText = "10.0",
                     backgroundColor = Color.LightGray,
                     borderColor = Color.DarkGray
                 )

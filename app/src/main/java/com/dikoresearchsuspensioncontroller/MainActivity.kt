@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
 
-                NavHost(navController = navController, startDestination = "simplescreen"){
+                NavHost(navController = navController, startDestination = "startscreen"){
                     composable("startscreen"){ StartScreen(navController = navController)}
                     composable("scanscreen"){ScanScreen(navController = navController)}
                     composable("controlscreen"){ControlScreen(navController = navController)}

@@ -26,15 +26,34 @@ fun AirBag(
     modifier: Modifier = Modifier,
     text: String,
     textStyle: TextStyle,
+    showPreset: Boolean,
+    presetText: String,
     backgroundColor: Color,
     borderColor: Color
 ){
-    Text(
-        text = text,
-        style = textStyle,
-        textAlign = TextAlign.Center,
+//    Text(
+//        text = text,
+//        style = textStyle,
+//        textAlign = TextAlign.Center,
+//        modifier = modifier
+//            .wrapContentSize(Alignment.Center)
+//            .graphicsLayer {
+//                shadowElevation = 8.dp.toPx()
+//                shape = AirBagShape()
+//                clip = true
+//            }
+//            .background(color = backgroundColor)
+//            .border(
+//                width = 2.dp,
+//                color = borderColor,
+//                shape = AirBagShape()
+//            )
+//            .padding(start = 40.dp, top = 32.dp, end = 40.dp, bottom = 32.dp)
+//    )
+
+    Box(
         modifier = modifier
-            .wrapContentSize(Alignment.Center)
+            .height(100.dp)
             .graphicsLayer {
                 shadowElevation = 8.dp.toPx()
                 shape = AirBagShape()
@@ -46,8 +65,33 @@ fun AirBag(
                 color = borderColor,
                 shape = AirBagShape()
             )
-            .padding(start = 40.dp, top = 32.dp, end = 40.dp, bottom = 32.dp)
-    )
+            .padding(start = 40.dp, top = 8.dp, end = 40.dp, bottom = 8.dp)
+    ){
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = text,
+                style = textStyle,
+                textAlign = TextAlign.Center,
+            )
+            if (showPreset){
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = presetText,
+                    style = textStyle.copy(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Light,
+                    ),
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+        }
+    }
 
 }
 
@@ -139,6 +183,21 @@ fun AirBagPreview(){
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
             ),
+            showPreset = true,
+            presetText = "10.0",
+            backgroundColor = Color.LightGray,
+            borderColor = Color.DarkGray
+        )
+
+        AirBag(
+            text = "10.0",
+            textStyle = TextStyle(
+                color = Color.Black,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+            ),
+            showPreset = false,
+            presetText = "10.0",
             backgroundColor = Color.LightGray,
             borderColor = Color.DarkGray
         )

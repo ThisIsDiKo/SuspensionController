@@ -62,7 +62,7 @@ fun PressureRegulationGroup(
     Row (
         modifier = Modifier
             .fillMaxWidth()
-            .height(presetButtonSize*2)
+            .height(presetButtonSize*2+20.dp)
             .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End
@@ -129,6 +129,7 @@ fun PressureRegulationGroup(
                         expandedState.value = PresetFloatingButtonState.EXPANDED
                     }
                     else {
+                        floatButtonClicked()
                         expandedState.value = PresetFloatingButtonState.COLLAPSED
                         presetButton1State.value = PresetButtonState.COLLAPSED
                         presetButton2State.value = PresetButtonState.COLLAPSED

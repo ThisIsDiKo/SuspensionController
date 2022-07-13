@@ -61,6 +61,8 @@ fun DoubleWay(
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                     ),
+                    showPreset = viewModel.presetState.value.showPresetValues,
+                    presetText = viewModel.presetState.value.presetPressure1,
                     backgroundColor = Color.LightGray,
                     borderColor = Color.DarkGray
                 )
@@ -71,6 +73,8 @@ fun DoubleWay(
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                     ),
+                    showPreset = viewModel.presetState.value.showPresetValues,
+                    presetText = viewModel.presetState.value.presetPressure2,
                     backgroundColor = Color.LightGray,
                     borderColor = Color.DarkGray
                 )
@@ -138,6 +142,7 @@ fun DoubleWay(
                 presetButton3State = viewModel.presetButton3State,
                 floatButtonClicked = {
                     //Stop regulation
+                    viewModel.hidePresetValues()
                     viewModel.writeRegulationParams(
                         PressureRegulationParameters(
                             commandType = "STOP",
