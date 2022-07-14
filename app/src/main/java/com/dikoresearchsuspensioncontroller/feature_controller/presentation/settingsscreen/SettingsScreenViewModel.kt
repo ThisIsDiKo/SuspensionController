@@ -44,6 +44,13 @@ class SettingsScreenViewModel @Inject constructor(
         }
     }
 
+    fun setAirPreparingSystem(airPreparingSystem: AirPreparingSystem){
+        viewModelScope.launch {
+            dataStoreManager.setAirPreparingSystem(airPreparingSystem)
+            clearPressurePresets()
+        }
+    }
+
     fun setPressureSensor(pressureSensor: PressureSensor){
         viewModelScope.launch {
             dataStoreManager.setPressureSensor(pressureSensor)

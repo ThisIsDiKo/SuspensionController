@@ -180,10 +180,13 @@ fun ControlScreen(
             }
             DeviceMode.SingleWay().alias -> {
                 SingleWay(
+                    viewModel = viewModel,
                     padding = padding,
                     pressure1 = controllerData.pressure1,
                     pressureTank = controllerData.pressureTank,
                     showPressureInTank = showPressureInTank.value,
+                    showControlGroup = viewModel.showControlGroup.value,
+                    showRegulationGroup = viewModel.showRegulationGroup.value,
                     writeOutputs = viewModel::writeOutputs
                 )
             }

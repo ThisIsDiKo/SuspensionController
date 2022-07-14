@@ -94,7 +94,11 @@ fun StartScreen(
         viewModel.eventFlow.collectLatest { event ->
             when(event){
                 is UiEventStartScreen.NavigateTo -> {
-                    navController.navigate(event.destination)
+                    navController.navigate(event.destination){
+                        popUpTo("startscreen"){
+                            inclusive = true
+                        }
+                    }
                 }
                 is UiEventStartScreen.ShowSnackbar -> {
                     scaffoldState.snackbarHostState.showSnackbar(

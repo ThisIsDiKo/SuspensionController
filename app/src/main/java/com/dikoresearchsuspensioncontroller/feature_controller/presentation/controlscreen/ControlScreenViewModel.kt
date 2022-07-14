@@ -5,10 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.ApplicationSettings
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.DeviceMode
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.PressureSensor
-import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.PressureUnits
+import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.*
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.model.controller_models.*
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.repository.local.DataStoreRepository
 import com.dikoresearchsuspensioncontroller.feature_controller.domain.usecases.suspensioncontroller.SuspensionControllerUseCases
@@ -77,6 +74,8 @@ class ControlScreenViewModel @Inject constructor(
     private var pressurePreset1 = "0,0,0,0"
     private var pressurePreset2 = "0,0,0,0"
     private var pressurePreset3 = "0,0,0,0"
+    private var airPreparingSystem: AirPreparingSystem = AirPreparingSystem.ReceiverSystem()
+    private var selectedPresetIndex = 1
 
     private var currentRawValues = SensorsRawValues()
 
@@ -90,9 +89,65 @@ class ControlScreenViewModel @Inject constructor(
                 _deviceMode.value = settings.deviceMode.alias
                 _showControlGroup.value = settings.showControlGroup
                 _showRegulationGroup.value = settings.showRegulationGroup
+                airPreparingSystem = settings.airPreparingSystem
                 pressurePreset1 = settings.pressurePreset1
                 pressurePreset2 = settings.pressurePreset2
                 pressurePreset3 = settings.pressurePreset3
+
+                val presetToSend = when(selectedPresetIndex){
+                    1 -> {
+                        pressurePreset1
+                    }
+                    2 -> {
+                        pressurePreset2
+                    }
+                    3 -> {
+                        pressurePreset3
+                    }
+                    else -> {
+                        "0,0,0,0"
+                    }
+                }
+                val presetPressure = presetToSend.split(",").map{it.toInt()}.toTypedArray()
+                val sensorsValues = SensorsValues()
+                val rawValues = SensorsRawValues(
+                    pressure1_mV = presetPressure[0],
+                    pressure2_mV = presetPressure[1],
+                    pressure3_mV = presetPressure[2],
+                    pressure4_mV = presetPressure[3],
+                )
+
+                when(selectedPressureSensor){
+                    is PressureSensor.China_0_20 -> {
+                        sensorsValues.calculateFromChinaSensor(rawValues)
+                    }
+                    is PressureSensor.Catterpillar -> {
+                        sensorsValues.calculateFromCaterpillarSensor(rawValues)
+                    }
+                }
+
+                when(selectedPressureUnits){
+                    is PressureUnits.Bar -> {
+                        //Timber.i("Sensors data: $sensorsValues")
+                        _presetState.value = presetState.value.copy(
+                            presetPressure1 = if(sensorsValues.pressure1 >= 0.0)  String.format("%.1f", sensorsValues.pressure1) else "----",
+                            presetPressure2 = if(sensorsValues.pressure2 >= 0.0)  String.format("%.1f", sensorsValues.pressure2) else "----",
+                            presetPressure3 = if(sensorsValues.pressure3 >= 0.0)  String.format("%.1f", sensorsValues.pressure3) else "----",
+                            presetPressure4 = if(sensorsValues.pressure4 >= 0.0)  String.format("%.1f", sensorsValues.pressure4) else "----",
+                        )
+                    }
+                    is PressureUnits.Psi -> {
+                        sensorsValues.convertToPsi()
+                        //Timber.i("Sensors data: $sensorsValues")
+                        _presetState.value = presetState.value.copy(
+                            presetPressure1 = if(sensorsValues.pressure1 >= 0.0)  String.format("%.0f", sensorsValues.pressure1) else "----",
+                            presetPressure2 = if(sensorsValues.pressure2 >= 0.0)  String.format("%.0f", sensorsValues.pressure2) else "----",
+                            presetPressure3 = if(sensorsValues.pressure3 >= 0.0)  String.format("%.0f", sensorsValues.pressure3) else "----",
+                            presetPressure4 = if(sensorsValues.pressure4 >= 0.0)  String.format("%.0f", sensorsValues.pressure4) else "----",
+                        )
+                    }
+                }
+
             }
         }
     }
@@ -222,6 +277,7 @@ class ControlScreenViewModel @Inject constructor(
     }
 
     fun selectPresetClicked(presetNum: Int){
+        selectedPresetIndex = presetNum
         val presetToSend = when(presetNum){
             1 -> {
                 pressurePreset1
@@ -311,8 +367,17 @@ class ControlScreenViewModel @Inject constructor(
             }
         }
         //TODO adapt to current control params
-        val waysType = "DOUBLE"
-        val airPreparingType = "RECEIVER"
+        val waysType = when(_deviceMode.value){
+            DeviceMode.SingleWay().alias -> "DOUBLE"
+            DeviceMode.DoubleWay().alias -> "DOUBLE"
+            DeviceMode.QuadroWay().alias -> "QUADRO"
+            else -> "DOUBLE"
+        }
+
+        val airPreparingType = when(airPreparingSystem){
+            AirPreparingSystem.ReceiverSystem() -> "RECEIVER"
+            else -> "COMPRESSOR"
+        }
 
         //TODO add cast check
         val presetPressure = presetToSend.split(",").map{it.toInt()}.toTypedArray()
@@ -359,6 +424,7 @@ class ControlScreenViewModel @Inject constructor(
                     _eventFlow.emit(
                         UiEventControlScreen.ShowSnackbar("Got notification")
                     )
+                    Timber.i("Got notification")
                 }
             }
         }
@@ -423,8 +489,8 @@ class ControlScreenViewModel @Inject constructor(
             readingJob?.cancel()
             readingJob = null
         }
-        viewModelScope.launch(Dispatchers.IO) {
-            suspensionControllerUseCases.stopObserveNotification()
-        }
+//        viewModelScope.launch(Dispatchers.IO) {
+//            suspensionControllerUseCases.stopObserveNotification()
+//        }
     }
 }

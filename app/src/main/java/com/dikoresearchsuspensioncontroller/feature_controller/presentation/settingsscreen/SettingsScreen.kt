@@ -317,6 +317,49 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val expanded = remember { mutableStateOf(false)}
+                val items = listOf(AirPreparingSystem.ReceiverSystem(), AirPreparingSystem.CompressorSystem())
+                Text(
+                    text = "Air Preparing system"
+                )
+                Box(
+                    modifier = Modifier.wrapContentSize(Alignment.TopStart)
+                ){
+                    Text(
+                        text = settings.value.airPreparingSystem.alias,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { expanded.value = true }
+                    )
+                    DropdownMenu(
+                        expanded = expanded.value,
+                        onDismissRequest = {
+                            expanded.value = false
+                        }
+                    ) {
+                        items.forEachIndexed { index, airPreparingSystem ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    viewModel.setAirPreparingSystem(airPreparingSystem)
+                                    expanded.value = false
+                                }
+                            ) {
+                                Text(text = airPreparingSystem.alias)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
