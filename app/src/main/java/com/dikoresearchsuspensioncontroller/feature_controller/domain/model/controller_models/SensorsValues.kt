@@ -15,8 +15,8 @@ data class SensorsValues(
     var error: String = ""
 ){
     fun calculateFromChinaSensor(rawValues: SensorsRawValues){
-        val k = 7.24 / 1000
-        val b = -2.46
+        val k = 0.006578947368421052
+        val b = -1.9736842105263157
 
         pressure1 = if (rawValues.pressure1_mV in 6..4999) k * rawValues.pressure1_mV + b else -1.0
         pressure2 = if (rawValues.pressure2_mV in 6..4999) k * rawValues.pressure2_mV + b else -1.0
